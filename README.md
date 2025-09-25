@@ -45,12 +45,12 @@ type Job = {
 
 **Client:** Electron
 
-1. Watch a disk folder for new images
-2. Chunk image
+1. Watch a disk folder for new files
+2. Split file into chunks
 3. Compress chunks _(zstd)_
 4. Upload chunks _(S3)_
 5. Create Job _(this happens right after the first chunk is uploaded, client only has create access)_
-6. Receive Job results
+6. Receive Job updates _(wait for status == COMPLETED | ERROR)_
 7. Delete chunks
 
 **File Transporter:** S3 Multipart upload + Transfer Acceleration
@@ -65,8 +65,8 @@ type Job = {
 4. Download chunks _(for each chunk)_
 5. Decompress chunks _(zstd)_
 6. Merge chunks
-7. Send image to Processor
-8. Receive results from Processor
+7. Send image to Analyzer
+8. Receive results from Analyzer
 9. Update Job _(analysis complete)_
 10. Delete local image
 
