@@ -1,0 +1,11 @@
+logs
+*.log
+npm-debug.log*
+package-lock.json
+node_modules/
+jspm_packages/
+.env
+.env.test
+.dynamodb/
+dist
+out
