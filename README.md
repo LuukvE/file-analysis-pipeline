@@ -43,22 +43,21 @@ type Job = {
 
 ## Architecture
 
+**Client:** Electron
+
+1. Watch a disk folder for new images
+2. Chunk image
+3. Compress chunks _(zstd)_
+4. Upload chunks _(S3)_
+5. Create Job _(this happens right after the first chunk is uploaded, client only has create access)_
+6. Receive Job results
+7. Delete chunks
+
 **File Transporter:** S3 Multipart upload + Transfer Acceleration
 
-**Database & Messaging Service:** DynamoDB with streams
+**Database & Messaging Service:** DynamoDB with Streams
 
-**Client:** Electron App
-
-_Upgrades when user requests it, using @electron-forge/publisher-s3_
-
-1. Watch a directory for new images
-2. Chunk image
-3. Create Job _(client only has create access)_
-4. Compress chunks _(zstd)_
-5. Send chunks
-6. Receive Job _(analysis complete)_
-
-**Fetcher:** Container
+**Processor:** Container
 
 1. Receive Job _(new requests)_
 2. Update Job _(acknowledgement)_
@@ -71,15 +70,9 @@ _Upgrades when user requests it, using @electron-forge/publisher-s3_
 9. Update Job _(analysis complete)_
 10. Delete local image
 
-**Processor:** Container
+**Analyzer:** Container
 
 1. Receive image
-2. Send results to Receiver
+2. __Run your analysis software__
+3. Send results back
 
-**Watcher:** Container
-
-1. Receive updates on Jobs
-2. Delete S3 chunks for completed Jobs
-3. Periodically check stalled Jobs _(CRON)_
-4. Restart stalled Jobs _(keep track of retries)_
-5. Notify when queue length exceeds threshold _(autoscale?)_

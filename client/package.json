@@ -1,16 +1,10 @@
 {
-  "name": "fetcher",
+  "name": "client",
   "version": "0.0.1",
   "author": "Luuk van Egeraat",
-  "scripts": {
-    "test": "bun src/test"
-  },
+  "scripts": {},
   "dependencies": {},
-  "devDependencies": {
-    "@types/node": "^20.x",
-    "prettier": "^3.5.3",
-    "typescript": "^4.0.0"
-  },
+  "devDependencies": {},
   "prettier": {
     "singleQuote": true,
     "printWidth": 100,
