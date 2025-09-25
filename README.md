@@ -9,7 +9,7 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 - Built on AWS services DynamoDB and S3
 - Optimises file transfers with chunking and compression
 - Handles file and message routing, including load balancing
-- Results can only be read by the client that uploaded the file
+- Results can only be read by the client that uploaded the file -- end to end
 - All file data is deleted after results are returned to the client
 - All custom software components are isolated from inbound network traffic
 - Allows clients to only update themselves to newer versions when they wish to
@@ -25,11 +25,11 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 5. Create job with signature
 6. Get result
 
-### File : _S3_
+### File Transfer: _S3_
 
 ### Database: _DynamoDB_
 
-### Processor: _Container_
+### Processor: _Docker Container_
 
 1. Listen for new jobs
 2. Take job
@@ -42,7 +42,7 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 9. Update job
 10. Delete local image
 
-### Analyzer: _Container_
+### Analyzer: _Docker Container_
 
 1. Receive image
 2. **Run your analysis software**
