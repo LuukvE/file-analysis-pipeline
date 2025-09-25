@@ -14,6 +14,40 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 - All custom software components are isolated from inbound network traffic
 - Allows clients to only update themselves to newer versions when they wish to
 
+## Architecture
+
+### Client: _Electron_
+
+1. Watch a folder for new files
+2. Split file into chunks
+3. Compress chunks _- zstd_
+4. Upload chunks _- S3_
+5. Create job with signature
+6. Get result
+
+### File : _S3_
+
+### Database: _DynamoDB_
+
+### Processor: _Container_
+
+1. Listen for new jobs
+2. Take job
+3. Download chunks then delete from S3
+4. Decompress chunks _- zstd_
+5. Merge chunks
+6. Send image to Analyzer
+7. Receive results from Analyzer
+8. Encrypt results
+9. Update job
+10. Delete local image
+
+### Analyzer: _Container_
+
+1. Receive image
+2. **Run your analysis software**
+3. Send results back
+
 ## Data Structure
 
 ```TypeScript
@@ -27,7 +61,7 @@ type Job = {
   client: 'client-049aff50ff4d086b98c77aee0fffba31fd5ff1456db3ab173b515476b39daac602f61a8e69b9adab188f63dd93b89e8a33dc2e761e8c089a0c29cc86f0ae6769db', // secp256r1 public key
 
   // signed using client private key: JSON.stringify(<object with all properties above this line>)
-  signature: '3045022100f693dcfc2931141219f861df40f36359948295c2018185fdff09d3d7f901b87202204bc66d70c8051276bc81167fd1cf531d12210d9fe8eef5be4ce62e6b0e377eac', 
+  signature: '3045022100f693dcfc2931141219f861df40f36359948295c2018185fdff09d3d7f901b87202204bc66d70c8051276bc81167fd1cf531d12210d9fe8eef5be4ce62e6b0e377eac',
 
   // Only one processor grabs this at any time because of ConditionExpression: "attribute_not_exists(processor)"
   processor: 'processor-0eeb217a-266f-4563-a582-60894057dc28',
@@ -40,39 +74,3 @@ type Job = {
   processed: '2025-09-25T11:22:19.915Z',
 }
 ```
-
-## Architecture
-
-**Client:** Electron
-
-1. Watch a disk folder for new files
-2. Split file into chunks
-3. Compress chunks _(zstd)_
-4. Upload chunks _(S3)_
-5. Create Job _(this happens right after the first chunk is uploaded, client only has create access)_
-6. Receive Job updates _(wait for status == COMPLETED | ERROR)_
-7. Delete chunks
-
-**File Transporter:** S3 Multipart upload + Transfer Acceleration
-
-**Database & Messaging Service:** DynamoDB with Streams
-
-**Processor:** Container
-
-1. Receive Job _(new requests)_
-2. Update Job _(acknowledgement)_
-3. Receive Job _(chunks available)_
-4. Download chunks _(for each chunk)_
-5. Decompress chunks _(zstd)_
-6. Merge chunks
-7. Send image to Analyzer
-8. Receive results from Analyzer
-9. Update Job _(analysis complete)_
-10. Delete local image
-
-**Analyzer:** Container
-
-1. Receive image
-2. __Run your analysis software__
-3. Send results back
-
