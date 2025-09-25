@@ -1,13 +1,26 @@
-# File Transporter
+# File Processing Wrapper
 
-A prototype for transporting files across the internet, while they remain isolated from inbound network traffic. Built on AWS services.
+A prototype aimed at importing files from a desktop computer, delivering it to a Docker container and broadcasting the results.
+
+## Features
+
+- Built on AWS services DynamoDB and S3
+- Optimises file transfers with chunking and compression
+- Handles file and message routing, including load balancing
+- All custom software components are isolated from inbound network traffic
 
 ## Data Structure
 
 ```TypeScript
 type Job {
-  version: '2.5.21',
-
+  status: 'COMPLETED', // 'QUEUED', 'PROCESSING', 'COMPLETED', 'ERROR'
+  version: '2.5.21', // set by client so outdated servers won't take the job
+  assignee: 'processor-0eeb217a-266f-4563-a582-60894057dc28',
+  account: 'account-a1b2c3d8-e5f6-1a7b-4c9d-0e1f9a3b4c5d',
+  client: 'client-e7e66b1b-b00b-436a-940c-14309e571a51',
+  bucket: 'file-processing-wrapper-production',
+  created: '2025-09-25T11:21:51.690Z',
+  results: { ... }
 }
 ```
 
