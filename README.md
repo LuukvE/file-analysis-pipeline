@@ -2,7 +2,7 @@
 
 A secure, scalable pipeline for your existing analysis container.
 
-This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of _(GPU-enabled)_ Docker containers for analysis and sending back the results.
+This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of Docker containers for analysis and sending back the results.
 
 ## Features
 
