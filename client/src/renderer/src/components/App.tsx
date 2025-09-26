@@ -11,7 +11,8 @@ export default () => {
 
   return (
     <>
-      <div className="text-3xl font-bold text-center mx-2.5 py-4">
+      <div className="draggable w-full h-8 bg-black/15" />
+      <div className="text-3xl font-bold text-center mx-2.5 py-4 mt-auto">
         {path ? <>Ready to upload</> : <>Select a folder to watch</>}
       </div>
       {path && (
@@ -23,44 +24,38 @@ export default () => {
         </p>
       )}
 
-      <div className="flex pt-8 m-[-6px] flex-wrap justify-start">
-        <div>
-          <a
-            className="cursor-pointer no-underline border border-transparent text-center font-bold"
-            target="_blank"
-            rel="noreferrer"
-            onClick={async (e) => {
-              e.preventDefault();
+      <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
+        <a
+          className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+          target="_blank"
+          rel="noreferrer"
+          onClick={async (e) => {
+            e.preventDefault();
 
-              const path = await invoke('dialog');
+            const path = await invoke('dialog');
 
-              localStorage.setItem('watchedFolder', path || '');
+            localStorage.setItem('watchedFolder', path || '');
 
-              await invoke('watch', path);
+            await invoke('watch', path);
 
-              setPath(path);
-            }}
-          >
-            Select Folder
-          </a>
-        </div>
-        <div className="action">
-          <a
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.preventDefault();
+            setPath(path);
+          }}
+        >
+          Select Folder
+        </a>
+        <a
+          className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
 
-              invoke('frame', 'close');
-            }}
-          >
-            Close App
-          </a>
-        </div>
+            invoke('frame', 'close');
+          }}
+        >
+          Close App
+        </a>
       </div>
-      <ul className="versions">
-        <li className="chrome-version">File Analyzer v0.1.0</li>
-      </ul>
     </>
   );
 };

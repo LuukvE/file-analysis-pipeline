@@ -1,17 +1,23 @@
 <!doctype html>
-<html>
+<html class="h-full">
   <head>
     <meta charset="UTF-8" />
-    <title>File Analyzer</title>
+    <title>File Analysis Pipeline</title>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     />
-    <link href="/src/main.css" rel="stylesheet">
+    <style>
+      html,
+      body {
+        background: #1b1b1f;
+      }
+    </style>
+    <link href="/src/main.css" rel="stylesheet" />
   </head>
 
-  <body>
-    <div id="root"></div>
+  <body class="h-full text-[rgba(255,255,245,0.86)] font-sans">
+    <div id="root" class="flex h-full grow flex-col items-center"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
