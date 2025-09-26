@@ -11,15 +11,22 @@ export default () => {
 
   return (
     <>
-      <div className="text">{path ? <>Ready to upload</> : <>Select a folder to watch</>}</div>
+      <div className="text-3xl font-bold text-center mx-2.5 py-4">
+        {path ? <>Ready to upload</> : <>Select a folder to watch</>}
+      </div>
       {path && (
-        <p className="tip">
-          System is watching <code>{path}</code>
+        <p className="text-[#ebebf599] text-sm font-bold">
+          System is watching{' '}
+          <code className="font-mono bg-[#282828] rounded-xs text-sm px-1.5 py-1 font-bold">
+            {path}
+          </code>
         </p>
       )}
-      <div className="actions">
-        <div className="action">
+
+      <div className="flex pt-8 m-[-6px] flex-wrap justify-start">
+        <div>
           <a
+            className="cursor-pointer no-underline border border-transparent text-center font-bold"
             target="_blank"
             rel="noreferrer"
             onClick={async (e) => {

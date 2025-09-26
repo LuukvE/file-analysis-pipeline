@@ -1,5 +1,6 @@
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
+import { incomingFile } from './uploader';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
   const { canceled, filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] });
@@ -17,17 +18,12 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
   if (!path) return;
 
   const opts: ChokidarOptions = {
-    ignored: (file) => !file.endsWith('.dcm'),
     ignoreInitial: true
   };
 
   watcher = chokidar.watch(path, opts);
 
-  console.log('watching', path, watcher);
-
-  watcher.on('add', (path) => {
-    console.log('added', path);
-  });
+  watcher.on('add', incomingFile);
 }
 
 export function onFrame(e: IpcMainInvokeEvent, action: 'close' | 'toggle' | 'minimize') {
