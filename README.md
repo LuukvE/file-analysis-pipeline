@@ -6,13 +6,14 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 
 ## Features
 
-- Built on AWS services DynamoDB and S3
-- Optimises file transfers with chunking and compression
-- Handles file and message routing, including load balancing
-- Results can only be read by the client that uploaded the file -- end to end
-- All file data is deleted after results are returned to the client
-- All custom software components are isolated from inbound network traffic
-- Allows clients to only update themselves to newer versions when they wish to
+- 🚀 __Horizontal Scaling:__ Seamlessly scales by adding more stateless Processor containers to handle increased load.
+- ⚖️ __Distributed Load Balancing:__ Each Processor's independently pulls jobs from a central queue, ensuring work is distributed efficiently across all available resources.
+- ⚡️ __Optimized Transfers:__ Accelerates file uploads using on-the-fly chunking and compression.
+- 🛡️ __Reduced Attack Surface:__ Shields your data Processor from network attacks by requiring no open inbound ports.
+- 🔒 __End-to-End Encryption:__ Results are encrypted so that only the original file uploader can ever decrypt and view them.
+- 🗑️ __Ephemeral Data:__ All source file data is permanently deleted from the system as soon as processing is complete.
+- ⚙️ __Client-Controlled Updates:__ End-users can choose when to update their client software, ensuring no forced changes.
+- ☁️ __Cloud Native:__ Built on reliable and highly-scalable AWS services, including S3 and DynamoDB.
 
 ## Architecture
 
