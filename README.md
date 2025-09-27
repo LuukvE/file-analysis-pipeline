@@ -20,7 +20,7 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 2. Convert file into stream of compressed chunks _- xz_
 3. Upload chunks _- S3_
 4. Create job _- DynamoDB_
-5. Get result _- DynamoDB_
+5. Listen for results _- DynamoDB Streams_
 
 ### Processor: _Docker Container_
 
