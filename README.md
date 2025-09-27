@@ -20,7 +20,7 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 
 1. Watch a folder for new files
 2. Split file into chunks
-3. Compress chunks _- zstd_
+3. Compress chunks _- xz_
 4. Upload chunks _- S3_
 5. Create job with signature
 6. Get result
@@ -32,15 +32,16 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 ### Processor: _Docker Container_
 
 1. Listen for new jobs
-2. Take job
-3. Download chunks then delete from S3
-4. Decompress chunks _- zstd_
-5. Merge chunks
-6. Send image to Analyzer
-7. Receive results from Analyzer
-8. Encrypt results
-9. Update job
-10. Delete local image
+2. Validate signature
+3. Take job
+4. Download chunks then delete from S3
+5. Decompress chunks _- xz_
+6. Merge chunks
+7. Send image to Analyzer
+8. Receive results from Analyzer
+9. Encrypt results
+10. Update job
+11. Delete local image
 
 ### Analyzer: _Docker Container_
 
