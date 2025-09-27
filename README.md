@@ -2,16 +2,15 @@
 
 A secure, scalable pipeline for your existing data analysis engine.
 
-This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back the results.
+This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back the results. Supports both cloud- and on-premise Docker containers. All authentication and communication is provided by AWS IAM, S3 and DynamoDB services.
 
 ## Features
 
 - ⚡️ **Optimized Transfers -** Files are optimized for maximum throughput
-- ⚙️ **Controlled Updates -** Users can choose when to update their software
-- 🚀 **Distributed Scaling -** Analysis is done through a network of processors
-- ☁️ **Cloud Native -** Built on reliable and battle-tested AWS S3 and DynamoDB services
-- 🔒 **Private Analysis -** Results are encrypted so that only the uploader can decrypt them
+- 🚀 **Distributed Scaling -** Jobs are handled by a network of processors
+- 🔒 **Private Results -** Results are encrypted so that only the uploader can decrypt them
 - 🛡️ **Attack Mitigation -** Processors are shielded from attacks by having no open inbound ports
+- ⚙️ **Controlled Updates -** Users choose when to update, while devs can still introduce breaking changes
 
 ## Architecture
 
@@ -30,17 +29,17 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 3. Take job
 4. Download chunks then delete from S3
 5. Recreate file _- xz_
-6. Send file to Analyzer
-7. Receive results from Analyzer
-8. Encrypt results
-9. Update job
+6. Send file to Engine
+7. Receive payload from Engine
+8. Encrypt payload
+9. Create result
 10. Delete local file
 
 ### Engine: _Docker Container_
 
-1. Receive image
+1. Receive file
 2. **Run your analysis software**
-3. Send results back
+3. Send back JSON payload
 
 ## Data Structure
 

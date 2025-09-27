@@ -19,32 +19,36 @@ const streams = new DynamoDBStreamsClient({ region: 'eu-west-1' });
 
 discover();
 
-async function discover() {
+async function discover(ParentShardId?: string) {
   if (discovery.busy) return;
 
   discovery.busy = true;
 
   try {
-    const isStartup = !Object.keys(shards).length;
     const { Table } = await db.send(new DescribeTableCommand({ TableName: 'jobs' }));
-    const input = { StreamArn: Table.LatestStreamArn };
-    const { StreamDescription } = await streams.send(new DescribeStreamCommand(input));
+
+    const { StreamDescription } = await streams.send(
+      new DescribeStreamCommand({
+        StreamArn: Table.LatestStreamArn,
+        ShardFilter: ParentShardId ? { Type: 'CHILD_SHARDS', ShardId: ParentShardId } : undefined
+      })
+    );
 
     discovery.busy = false;
 
     StreamDescription.Shards.forEach(async function getIterator({ ShardId }) {
       if (shards[ShardId]) return;
 
-      const ShardIteratorType = isStartup ? 'LATEST' : 'TRIM_HORIZON';
-
-      const getShard = new GetShardIteratorCommand({
-        ShardId,
-        ShardIteratorType,
-        StreamArn: Table.LatestStreamArn
-      });
+      const ShardIteratorType = ParentShardId ? 'TRIM_HORIZON' : 'LATEST';
 
       try {
-        const { ShardIterator } = await streams.send(getShard);
+        const { ShardIterator } = await streams.send(
+          new GetShardIteratorCommand({
+            ShardId,
+            ShardIteratorType,
+            StreamArn: Table.LatestStreamArn
+          })
+        );
 
         shards[ShardId] = ShardIterator;
 
@@ -77,7 +81,7 @@ async function poll(ShardId: string) {
         try {
           jobs.emit('change', unmarshall(record.dynamodb.NewImage) as Job);
         } catch (err) {
-          console.error('malformed DB image', record.dynamodb.NewImage);
+          console.error('malformed DB image', record.dynamodb.NewImage, err);
         }
       });
     });
@@ -89,13 +93,13 @@ async function poll(ShardId: string) {
 
       return poll(ShardId);
     }
+
+    delete shards[ShardId];
+
+    discover(ShardId);
   } catch (err) {
     console.error(err);
 
-    return setTimeout(poll, 1000, ShardId);
+    setTimeout(poll, 1000, ShardId);
   }
-
-  delete shards[ShardId];
-
-  discover();
 }
