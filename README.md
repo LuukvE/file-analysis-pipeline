@@ -57,7 +57,7 @@ const Job = {
   status: 'PROCESSED', // 'UPLOADING', 'UPLOADED', 'PROCESSING', 'PROCESSED', 'ERROR'
   version: '2.5.21', // processors use version to decide whether to take the job
   created: '2025-09-25T11:21:51.690Z',
-  bucket: 'dublin-file-analysis-pipeline-bucket--euw1-az3--x-s3',
+  bucket: 'dublin-file-analysis-pipeline-bucket',
   region: 'eu-west-1',
   file: 'file-1a026c06-e99c-4f2f-842c-cb01c51849af',
   client: 'client-049aff50ff4d086b98c77aee0fffba31fd5ff1456db3ab173b515476b39daac602f61a8e69b9adab188f63dd93b89e8a33dc2e761e8c089a0c29cc86f0ae6769db', // secp256r1 public key

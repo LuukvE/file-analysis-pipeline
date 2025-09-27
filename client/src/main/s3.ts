@@ -9,12 +9,12 @@ import { createJob, updateJob } from './db';
 import { awsBuckets, minChunkSize } from './settings';
 
 export async function upload(path: string): Promise<void> {
-  const id = `job-${crypto.randomUUID()}`;
   const source = createReadStream(path);
+  const id = `job-${crypto.randomUUID()}`;
   const { bucket, region } = awsBuckets[0];
-  const s3 = new S3Client({ region });
   const file = `file-${crypto.randomUUID()}`;
   const xz = spawn('xz', ['-c', '-z', '-9e']);
+  const s3 = new S3Client({ region, useAccelerateEndpoint: true });
 
   return new Promise((resolve, reject) => {
     let size = 0;
