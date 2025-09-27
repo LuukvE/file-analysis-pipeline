@@ -6,12 +6,12 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 
 ## Features
 
-- 🚀 __Distributed Scaling:__ Jobs are handled by a network of Processors
 - ☁️ __Cloud Native:__ Built on reliable and battle-tested AWS services S3 and DynamoDB
-- 🛡️ __Attack Mitigation:__ Processors are shielded from network attacks by requiring no open inbound ports
-- 🔒 __Private Results:__ Results are encrypted so that only the original uploader can ever decrypt and view them
-- ⚙️ __Client-Controlled Updates:__ End-users can choose when to update their client software, ensuring no forced changes
-- ⚡️ __Optimized Transfers:__ Files are optimized for maximum throughput and parallelisation through chunking and compression
+- 🔒 __Private Analysis:__ Results are encrypted so that only the uploader can decrypt them
+- 🛡️ __Attack Mitigation:__ Processors are shielded from network attacks by having no open inbound ports
+- ⚙️ __Controlled Updates:__ Users can choose when to update their client software
+- 🚀 __Distributed Scaling:__ File analysis is done through a network of processors
+- ⚡️ __Optimized Transfers:__ Files are optimized for maximum throughput using chunking and compression
 
 ## Architecture
 
