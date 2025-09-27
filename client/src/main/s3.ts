@@ -4,8 +4,7 @@ import { spawn } from 'child_process';
 import { Upload } from '@aws-sdk/lib-storage';
 import { CompleteMultipartUploadCommandOutput, S3Client } from '@aws-sdk/client-s3';
 
-import { Status } from './types';
-import { createJob, updateJob } from './db';
+import { setChunks, setJob, setUploaded } from './db';
 import { awsBuckets, minChunkSize } from './settings';
 
 export async function upload(path: string): Promise<void> {
@@ -16,10 +15,11 @@ export async function upload(path: string): Promise<void> {
   const xz = spawn('xz', ['-c', '-z', '-9e']);
   const s3 = new S3Client({ region, useAccelerateEndpoint: true });
 
+  console.log('Incoming', path);
+
   return new Promise((resolve, reject) => {
-    let size = 0;
-    let aws: PassThrough;
     const uploads: Promise<CompleteMultipartUploadCommandOutput>[] = [];
+    const payload: { size: number; destination?: PassThrough } = { size: 0 };
 
     reset();
 
@@ -32,21 +32,21 @@ export async function upload(path: string): Promise<void> {
     source.pipe(xz.stdin);
 
     function onChunk(chunk: Buffer) {
-      aws.write(chunk);
+      payload.destination!.write(chunk);
 
-      size += chunk.length;
+      payload.size += chunk.length;
 
-      if (size >= minChunkSize) reset();
+      if (payload.size >= minChunkSize) reset();
     }
 
     async function onDone(code: number) {
-      aws.end();
+      payload.destination!.end();
 
       if (code !== 0) return reject(new Error(`xz exited with code ${code}`));
 
       await Promise.all(uploads);
 
-      await updateJob(id, uploads.length, Status.UPLOADED);
+      await setUploaded(id);
 
       resolve();
     }
@@ -55,33 +55,34 @@ export async function upload(path: string): Promise<void> {
       const index = uploads.length;
       const key = `${file}-${index}`;
 
-      aws?.end();
+      payload.destination?.end();
 
-      size = 0;
-      aws = new PassThrough();
+      payload.size = 0;
 
-      const { done } = new Upload({
+      payload.destination = new PassThrough();
+
+      const upload = new Upload({
         client: s3,
         params: {
           Bucket: bucket,
           Key: key,
-          Body: aws
+          Body: payload.destination
         }
       });
 
-      uploads.push(done());
+      uploads.push(upload.done());
 
       await uploads[index];
 
-      if (index === 0) return createJob(id, file, bucket, region);
+      if (index === 0) return setJob(id, file, bucket, region);
 
-      updateJob(id, uploads.length, Status.UPLOADING);
+      await setChunks(id, index);
     }
 
     function kill(err: string) {
       xz?.kill();
-      aws?.end();
       source?.destroy();
+      payload.destination?.end();
 
       reject(new Error(err));
     }

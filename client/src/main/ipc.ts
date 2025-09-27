@@ -11,10 +11,10 @@ export async function onDialog(_e: IpcMainInvokeEvent) {
   return filePaths[0];
 }
 
-let watcher: FSWatcher | null = null;
+const watcher: { current?: FSWatcher } = {};
 
 export function onWatch(_e: IpcMainInvokeEvent, path: string) {
-  watcher?.close();
+  watcher.current?.close();
 
   if (!path) return;
 
@@ -22,9 +22,9 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
     ignoreInitial: true
   };
 
-  watcher = chokidar.watch(path, opts);
+  watcher.current = chokidar.watch(path, opts);
 
-  watcher.on('add', (path) => upload(path));
+  watcher.current.on('add', (path) => upload(path));
 }
 
 export function onFrame(e: IpcMainInvokeEvent, action: 'close' | 'toggle' | 'minimize') {
