@@ -24,11 +24,7 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
 
   watcher = chokidar.watch(path, opts);
 
-  watcher.on('add', async (path) => {
-    await upload(path).catch((err) => {
-      throw err;
-    });
-  });
+  watcher.on('add', (path) => upload(path));
 }
 
 export function onFrame(e: IpcMainInvokeEvent, action: 'close' | 'toggle' | 'minimize') {

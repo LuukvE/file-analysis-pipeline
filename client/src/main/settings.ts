@@ -19,7 +19,7 @@ export const windowOptions: BrowserWindowConstructorOptions = {
   }
 };
 
-// Test nearby endpoints with: https://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html?region=
+// Test nearby regions with: https://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html?region=
 export const awsBuckets = [
   'eu-west-1/dublin-file-analysis-pipeline-bucket--euw1-az3--x-s3',
   'eu-central-1/my-frankfurt-bucket',

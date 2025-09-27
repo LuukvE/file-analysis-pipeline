@@ -1,11 +1,10 @@
-import fs from 'fs';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import fs from 'fs';
 
-import { awsBuckets, minChunkSize, privateKey, publicKey } from './settings';
 import { app } from 'electron';
-import { sign } from './crypto';
-import { Job, Status } from './types';
 import { createJob, updateJob } from './db';
+import { awsBuckets, minChunkSize, publicKey } from './settings';
+import { Job, Status } from './types';
 
 export async function upload(path: string): Promise<void> {
   const id = `job-${crypto.randomUUID()}`;
@@ -41,7 +40,7 @@ export async function upload(path: string): Promise<void> {
       xz.stdout.pause();
 
       aws.stdin.once('drain', () => {
-        if (size > minChunkSize) reset();
+        reset();
 
         xz.stdout.resume();
       });
@@ -62,6 +61,8 @@ export async function upload(path: string): Promise<void> {
     }
 
     async function reset() {
+      if (size < minChunkSize) return;
+
       const awsArgs = `s3 cp - ${baseUrl}-${uploads.length} --region ${region}`;
 
       if (aws) aws.stdin.end(); // finalize previous upload
