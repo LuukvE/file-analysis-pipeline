@@ -1,5 +1,6 @@
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
+
 import { upload } from './uploader';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
@@ -23,7 +24,11 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
 
   watcher = chokidar.watch(path, opts);
 
-  watcher.on('add', upload);
+  watcher.on('add', async (path) => {
+    await upload(path).catch((err) => {
+      throw err;
+    });
+  });
 }
 
 export function onFrame(e: IpcMainInvokeEvent, action: 'close' | 'toggle' | 'minimize') {

@@ -1,37 +1,106 @@
 import fs from 'fs';
-import { spawn } from 'child_process';
-import { awsBuckets } from './settings';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 
-export async function upload(path: string): Promise<{ url: string; region: string }> {
+import { awsBuckets, minChunkSize, privateKey, publicKey } from './settings';
+import { app } from 'electron';
+import { sign } from './crypto';
+import { Job, Status } from './types';
+import { createJob, updateJob } from './db';
+
+export async function upload(path: string): Promise<void> {
+  const id = `job-${crypto.randomUUID()}`;
+  const source = fs.createReadStream(path);
   const { bucket, region } = awsBuckets[0];
-  const url = `s3://${bucket}/file-${crypto.randomUUID()}.xz`;
-  const xzArgs = `-c -z -9e`.split(' ');
-  const awsArgs = `s3 cp - ${url} --use-accelerate-endpoint --region ${region}`.split(' ');
-  const source: fs.ReadStream = fs.createReadStream(path);
-  const xz = spawn('xz', xzArgs);
+  const xz = spawn('xz', `-c -z -9e`.split(' '));
+  const file = `file-${crypto.randomUUID()}`;
+  const baseUrl = `s3://${bucket}/${file}`;
 
   return new Promise((resolve, reject) => {
-    source.on('error', (err) => kill(`Read Error: ${err.message}`));
+    let size = 0;
+    let aws: ChildProcessWithoutNullStreams;
+    const uploads: Promise<string>[] = [];
 
+    reset();
+
+    xz.on('close', onDone);
     xz.on('error', (err) => kill(`xz Error: ${err.message}`));
 
     xz.stderr.on('data', (data: Buffer) => console.error(`[xz stderr]: ${data.toString()}`));
+    xz.stdout.on('data', onChunk);
 
+    source.on('error', (err) => kill(`Read Error: ${err.message}`));
     source.pipe(xz.stdin);
 
-    // xz.stdout.pipe(aws.stdin);
+    function onChunk(chunk: any) {
+      const busy = !aws.stdin.write(chunk);
 
-    // const aws = spawn('aws', awsArgs);
-    // aws.on('error', (err) => kill(`AWS Error: ${err.message}`));
+      size += chunk.length;
 
-    // aws.stderr.on('data', (data: Buffer) => console.error(`[aws stderr]: ${data.toString()}`));
+      if (!busy) return reset();
 
-    // aws.on('close', (c) => (c === 0 ? resolve({ url, region }) : kill(`AWS exit code ${c}.`)));
+      xz.stdout.pause();
+
+      aws.stdin.once('drain', () => {
+        if (size > minChunkSize) reset();
+
+        xz.stdout.resume();
+      });
+    }
+
+    async function onDone(code: number) {
+      aws.stdin.end(); // finalize final upload
+
+      if (code !== 0) return reject(`xz exit code ${code}`);
+
+      const errors = await Promise.all(uploads);
+
+      if (errors.find((err) => !!err)) return reject(`AWS errors: ${JSON.stringify(errors)}`);
+
+      await updateJob(id, uploads.length);
+
+      resolve();
+    }
+
+    async function reset() {
+      const awsArgs = `s3 cp - ${baseUrl}-${uploads.length} --region ${region}`;
+
+      if (aws) aws.stdin.end(); // finalize previous upload
+
+      size = 0;
+
+      aws = spawn('aws', awsArgs.split(' '));
+
+      aws.stderr.on('data', (data: Buffer) => console.error(`[aws stderr]: ${data.toString()}`));
+
+      uploads.push(
+        new Promise((resolve, reject) => {
+          aws!.on('error', (err) => reject(`AWS Error: ${err.message}`));
+          aws!.on('close', (c) => (c === 0 ? resolve('') : reject(`AWS exit code ${c}`)));
+        })
+      );
+
+      if (uploads.length !== 1) return;
+
+      const job: Job = {
+        id,
+        status: Status.UPLOADING,
+        version: app.getVersion(),
+        created: new Date().toJSON(),
+        bucket,
+        region,
+        file,
+        client: `client-${publicKey}`
+      };
+
+      await uploads[0];
+
+      await createJob(job);
+    }
 
     function kill(err: string) {
-      source?.destroy();
       xz?.kill();
-      // aws?.kill();
+      aws?.kill();
+      source?.destroy();
 
       reject(new Error(err));
     }
