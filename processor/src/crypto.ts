@@ -11,40 +11,7 @@ import {
   createPublicKey
 } from 'crypto';
 
-const { publicKey, privateKey } = generate();
-const message = 'This is a secret message.';
-const encrypted = encrypt(publicKey, message);
-const decrypted = decrypt(privateKey, encrypted);
-const signedMessage = JSON.stringify({
-  status: 'COMPLETED',
-  version: '2.5.21',
-  created: '2025-09-25T11:21:51.690Z',
-  bucket: 'file-processing-wrapper-production',
-  file: 'file-1a026c06-e99c-4f2f-842c-cb01c51849af',
-  chunks: 20,
-  client:
-    'client-049aff50ff4d086b98c77aee0fffba31fd5ff1456db3ab173b515476b39daac602f61a8e69b9adab188f63dd93b89e8a33dc2e761e8c089a0c29cc86f0ae6769db' // secp256r1 public key
-});
-const signature = sign(privateKey, publicKey, signedMessage);
-const isVerified = verify(publicKey, signedMessage, signature);
-
-console.log('PublicKey:', publicKey);
-console.log('PrivateKey:', privateKey);
-console.log('Original:', message);
-console.log('Encrypted:', encrypted);
-console.log('Decrypted:', decrypted);
-console.log('Success:', message === decrypted);
-console.log('Message to sign:', signedMessage);
-console.log('Signature:', signature);
-console.log('Signature Verified:', isVerified);
-
-function getCurve() {
-  const curves = getCurves();
-
-  return ['prime256v1', 'secp256r1', 'P-256'].find((c) => curves.includes(c));
-}
-
-function generate() {
+export function generate() {
   const curve = createECDH(getCurve());
 
   curve.generateKeys();
@@ -55,7 +22,7 @@ function generate() {
   return { publicKey, privateKey };
 }
 
-function derive(privateKey: string, publicKey: string): Buffer {
+export function derive(privateKey: string, publicKey: string): Buffer {
   const curve = createECDH(getCurve());
 
   curve.setPrivateKey(privateKey, 'hex');
@@ -65,7 +32,7 @@ function derive(privateKey: string, publicKey: string): Buffer {
   return createHash('sha256').update(secret).digest();
 }
 
-function encrypt(publicKey: string, text: string): string {
+export function encrypt(publicKey: string, text: string): string {
   const tmp = createECDH(getCurve());
 
   tmp.generateKeys();
@@ -81,7 +48,7 @@ function encrypt(publicKey: string, text: string): string {
   return `${tmpPublic}:${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`;
 }
 
-function decrypt(privateKey: string, payload: string): string {
+export function decrypt(privateKey: string, payload: string): string {
   const [tmpPublic, iv, tag, encrypted] = payload.split(':');
   const secret = derive(privateKey, tmpPublic);
   const ivBuffer = Buffer.from(iv, 'hex');
@@ -96,11 +63,7 @@ function decrypt(privateKey: string, payload: string): string {
   return decrypted.toString('utf8');
 }
 
-function toBase64Url(buf: Buffer) {
-  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-function sign(privateKey: string, publicKey: string, message: string): string {
+export function sign(privateKey: string, publicKey: string, message: string): string {
   const x = publicKey.substring(2, 66);
   const y = publicKey.substring(66, 130);
 
@@ -125,7 +88,7 @@ function sign(privateKey: string, publicKey: string, message: string): string {
   return signature;
 }
 
-function verify(publicKey: string, message: string, signature: string): boolean {
+export function verify(publicKey: string, message: string, signature: string): boolean {
   const x = publicKey.substring(2, 66);
   const y = publicKey.substring(66, 130);
   const obj = createPublicKey({
@@ -144,4 +107,14 @@ function verify(publicKey: string, message: string, signature: string): boolean 
   verifier.end();
 
   return verifier.verify(obj, signature, 'hex');
+}
+
+function getCurve() {
+  const curves = getCurves();
+
+  return ['secp256r1', 'prime256v1', 'P-256'].find((c) => curves.includes(c))!;
+}
+
+function toBase64Url(buf: Buffer) {
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
