@@ -19,15 +19,10 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 ### Client: _Electron_
 
 1. Watch a folder for new files
-2. Split file into chunks
-3. Compress chunks _- xz_
-4. Upload chunks _- S3_
-5. Create job with signature
-6. Get result
-
-### File Transfer: _S3_
-
-### Database: _DynamoDB_
+2. Convert file into stream of compressed chunks _- xz_
+3. Upload chunks _- S3_
+4. Create job _- DynamoDB_
+5. Get result
 
 ### Processor: _Docker Container_
 
@@ -35,13 +30,12 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 2. Validate signature
 3. Take job
 4. Download chunks then delete from S3
-5. Decompress chunks _- xz_
-6. Merge chunks
-7. Send image to Analyzer
-8. Receive results from Analyzer
-9. Encrypt results
-10. Update job
-11. Delete local image
+5. Recreate file _- xz_
+6. Send file to Analyzer
+7. Receive results from Analyzer
+8. Encrypt results
+9. Update job
+10. Delete local file
 
 ### Analyzer: _Docker Container_
 
