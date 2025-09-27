@@ -2,7 +2,7 @@
 
 A secure, scalable pipeline for your existing data analysis engine.
 
-This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back the results. Supports both cloud- and on-premise Docker containers. All authentication and communication is provided by AWS IAM, S3 and DynamoDB services.
+This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back results. Supports both cloud- and on-premise Docker containers. All authentication and communication is provided by AWS IAM, S3 and DynamoDB services.
 
 ## Features
 
@@ -27,10 +27,10 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 1. Listen for new jobs
 2. Validate signature
 3. Take job
-4. Download chunks then delete from S3
+4. Download and delete chunks _- S3_
 5. Recreate file _- xz_
-6. Send file to Engine
-7. Receive payload from Engine
+6. Send file _- Engine_
+7. Receive payload _- Engine_
 8. Encrypt payload
 9. Create result
 10. Delete local file
