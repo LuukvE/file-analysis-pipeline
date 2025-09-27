@@ -1,19 +1,17 @@
 # File Analysis Pipeline
 
-A secure, scalable pipeline for your existing analysis container.
+A secure, scalable pipeline for your existing data analysis engine.
 
-This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of Docker containers for analysis and sending back the results.
+This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back the results.
 
 ## Features
 
-- 🚀 __Horizontal Scaling:__ Seamlessly scales by adding more stateless Processor containers to handle increased load.
-- ⚖️ __Distributed Load Balancing:__ Each Processor's independently pulls jobs from a central queue, ensuring work is distributed efficiently across all available resources.
-- ⚡️ __Optimized Transfers:__ Accelerates file uploads using on-the-fly chunking and compression.
-- 🛡️ __Reduced Attack Surface:__ Shields your data Processor from network attacks by requiring no open inbound ports.
-- 🔒 __End-to-End Encryption:__ Results are encrypted so that only the original file uploader can ever decrypt and view them.
-- 🗑️ __Ephemeral Data:__ All source file data is permanently deleted from the system as soon as processing is complete.
-- ⚙️ __Client-Controlled Updates:__ End-users can choose when to update their client software, ensuring no forced changes.
-- ☁️ __Cloud Native:__ Built on reliable and highly-scalable AWS services, including S3 and DynamoDB.
+- 🚀 __Distributed Scaling:__ Jobs are handled by a network of Processors
+- ☁️ __Cloud Native:__ Built on reliable and battle-tested AWS services S3 and DynamoDB
+- 🛡️ __Attack Mitigation:__ Processors are shielded from network attacks by requiring no open inbound ports
+- 🔒 __Private Results:__ Results are encrypted so that only the original uploader can ever decrypt and view them
+- ⚙️ __Client-Controlled Updates:__ End-users can choose when to update their client software, ensuring no forced changes
+- ⚡️ __Optimized Transfers:__ Files are optimized for maximum throughput and parallelisation through chunking and compression
 
 ## Architecture
 
@@ -38,7 +36,7 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 9. Update job
 10. Delete local file
 
-### Analyzer: _Docker Container_
+### Engine: _Docker Container_
 
 1. Receive image
 2. **Run your analysis software**
