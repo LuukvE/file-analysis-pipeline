@@ -1,4 +1,4 @@
-export enum JobStatus {
+export enum Status {
   UPLOADING = 'UPLOADING',
   UPLOADED = 'UPLOADED'
 }
@@ -12,29 +12,17 @@ export type Job = {
   file: string;
   client: string;
   signature?: string;
-  status?: JobStatus;
+  status?: Status;
   chunks?: number;
   processor?: string;
   assigned?: string;
   uploaded?: string;
   downloaded?: string;
-  results?: string;
-  error?: string;
   processed?: string;
 };
 
-export enum ResultStatus {
-  SUCCESS = 'SUCCESS',
-  ERROR = 'ERROR'
-}
-
 export type Result = {
   id: string;
-  created: string;
-  file: string;
   client: string;
-  status: ResultStatus;
-  processor: string;
-  results: string;
-  error: string;
+  payload: string;
 };

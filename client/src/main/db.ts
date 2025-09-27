@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { PutCommand, DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import { sign } from './crypto';
-import { Job, JobStatus } from './types';
+import { Job, Status } from './types';
 import { privateKey, publicKey } from './settings';
 
 const TableName = 'jobs';
@@ -27,7 +27,7 @@ export const setJob = async (id: string, file: string, bucket: string, region: s
   const Item: Job = {
     ...job,
     signature: sign(privateKey, publicKey, JSON.stringify(job)),
-    status: JobStatus.UPLOADING,
+    status: Status.UPLOADING,
     chunks: 1
   };
 
@@ -72,7 +72,7 @@ export const setUploaded = async (id: string) => {
       '#uploaded': 'uploaded'
     },
     ExpressionAttributeValues: {
-      ':status': JobStatus.UPLOADED,
+      ':status': Status.UPLOADED,
       ':uploaded': uploaded.toJSON()
     }
   });

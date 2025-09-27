@@ -67,14 +67,8 @@ const Job = {
 ```TypeScript
 const Result = {
   id: 'result-c1e0af22-a56e-41fd-9118-fe86ee14b13b',
-  created: '2025-09-25T11:21:51.690Z',
-  file: 'file-1a026c06-e99c-4f2f-842c-cb01c51849af',
   client: 'client-049aff50ff4d086b98c77aee0fffba31fd5ff1456db3ab173b515476b39daac602f61a8e69b9adab188f63dd93b89e8a33dc2e761e8c089a0c29cc86f0ae6769db', // secp256r1 public key
-  status: 'SUCCESS', // 'SUCCESS', 'ERROR'
-  processor: 'processor-0eeb217a-266f-4563-a582-60894057dc28',
-
   // encrypted using client public key (client ID), can only be decrypted using client private key
-  results: '0454d24adc888399517adb5930e9bc1c96cc1169ece00baf7a4809a15fcfe917bb7a00d3021f754924191532a1254a782ee4084d5545e2f53d3777ac59a971d80d:cb34b6d76357777dbc46b864:92688d043b45540fb831f7ccb2c88c2a:3095126d7998ac807d4878a2f38552b5e1b27f33f636ec9b96',
-  error: '', // only contains text if status = 'ERROR'
+  payload: '0454d24adc888399517adb5930e9bc1c96cc1169ece00baf7a4809a15fcfe917bb7a00d3021f754924191532a1254a782ee4084d5545e2f53d3777ac59a971d80d:cb34b6d76357777dbc46b864:92688d043b45540fb831f7ccb2c88c2a:3095126d7998ac807d4878a2f38552b5e1b27f33f636ec9b96'
 }
 ```
