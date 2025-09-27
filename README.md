@@ -20,19 +20,19 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 2. Convert file into stream of compressed chunks _- xz_
 3. Upload chunks _- S3_
 4. Create job _- DynamoDB_
-5. Get result
+5. Get result _- DynamoDB_
 
 ### Processor: _Docker Container_
 
-1. Listen for new jobs
+1. Listen for new jobs _- DynamoDB Streams_
 2. Validate signature
-3. Take job
+3. Take job _- DynamoDB_
 4. Download and delete chunks _- S3_
 5. Recreate file _- xz_
 6. Send file _- Engine_
 7. Receive payload _- Engine_
 8. Encrypt payload
-9. Create result
+9. Create result _- DynamoDB_
 10. Delete local file
 
 ### Engine: _Docker Container_
