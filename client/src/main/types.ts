@@ -15,10 +15,7 @@ export type Job = {
   status?: Status;
   chunks?: number;
   processor?: string;
-  assigned?: string;
   uploaded?: string;
-  downloaded?: string;
-  processed?: string;
 };
 
 export type Result = {

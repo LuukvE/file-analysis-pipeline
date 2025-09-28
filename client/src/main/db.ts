@@ -6,10 +6,9 @@ import { sign } from './crypto';
 import { Job, Status } from './types';
 import { privateKey, publicKey } from './settings';
 
-const TableName = 'jobs';
 const created: Record<string, Date> = {};
 const client = new DynamoDBClient({ region: 'eu-west-1' });
-const docClient = DynamoDBDocumentClient.from(client);
+const db = DynamoDBDocumentClient.from(client);
 
 export const setJob = async (id: string, file: string, bucket: string, region: string) => {
   created[id] = new Date();
@@ -34,16 +33,16 @@ export const setJob = async (id: string, file: string, bucket: string, region: s
   console.log('Created', id);
   console.log(`Chunk #1`);
 
-  const command = new PutCommand({ TableName, Item });
+  const command = new PutCommand({ TableName: 'jobs', Item });
 
-  await docClient.send(command);
+  await db.send(command);
 };
 
 export const setChunks = async (id: string, index: number) => {
   console.log(`Chunk #${index + 1}`);
 
   const command = new UpdateCommand({
-    TableName,
+    TableName: 'jobs',
     Key: { id },
     UpdateExpression: 'SET #chunks = :chunks',
     ConditionExpression: '#chunks < :chunks', // avoids race conditions during uploading
@@ -51,7 +50,7 @@ export const setChunks = async (id: string, index: number) => {
     ExpressionAttributeValues: { ':chunks': index + 1 }
   });
 
-  await docClient.send(command).catch((err: Error) => {
+  await db.send(command).catch((err: Error) => {
     // this type of exception is by design
     if (err.name !== 'ConditionalCheckFailedException') throw err;
   });
@@ -64,7 +63,7 @@ export const setUploaded = async (id: string) => {
   console.log('Duration', new Intl.NumberFormat().format(duration), 'ms');
 
   const command = new UpdateCommand({
-    TableName,
+    TableName: 'jobs',
     Key: { id },
     UpdateExpression: 'SET #status = :status, #uploaded = :uploaded',
     ExpressionAttributeNames: {
@@ -77,5 +76,5 @@ export const setUploaded = async (id: string) => {
     }
   });
 
-  await docClient.send(command);
+  await db.send(command);
 };

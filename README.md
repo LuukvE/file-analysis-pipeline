@@ -54,12 +54,10 @@ const Job = {
   client: 'client-049aff50ff4d086b98c77aee0fffba31fd5ff1456db3ab173b515476b39daac602f61a8e69b9adab188f63dd93b89e8a33dc2e761e8c089a0c29cc86f0ae6769db', // secp256r1 public key
   // signed using client private key: JSON.stringify(<object with all properties above this line>)
   signature: '3045022100f693dcfc2931141219f861df40f36359948295c2018185fdff09d3d7f901b87202204bc66d70c8051276bc81167fd1cf531d12210d9fe8eef5be4ce62e6b0e377eac',
-  status: 'UPLOADED', // 'UPLOADING', 'UPLOADED'
+  status: 'UPLOADED', // 'UPLOADING' | 'UPLOADED'
   chunks: 20, // This is updated whenever a new chunk has been uploaded
   processor: 'processor-0eeb217a-266f-4563-a582-60894057dc28',
-  assigned: '2025-09-25T11:21:52.342Z',
   uploaded: '2025-09-25T11:22:04.342Z',
-  downloaded: '2025-09-25T11:22:08.620Z'
 }
 ```
 

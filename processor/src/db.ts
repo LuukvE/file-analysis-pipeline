@@ -9,15 +9,36 @@ import {
 } from '@aws-sdk/client-dynamodb-streams';
 
 import { Job } from './types';
-
-export const jobs = new EventEmitter<{ change: [data: Job] }>();
+import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 const discovery = { busy: false };
 const shards: Record<string, string> = {};
-const db = new DynamoDBClient({ region: 'eu-west-1' });
+const client = new DynamoDBClient({ region: 'eu-west-1' });
 const streams = new DynamoDBStreamsClient({ region: 'eu-west-1' });
+const db = DynamoDBDocumentClient.from(client);
 
 discover();
+
+export const database = new EventEmitter<{
+  change: [job: Job];
+  take: [job: Job, processor: string];
+}>();
+
+database.on('take', (job, processor) => {
+  const command = new UpdateCommand({
+    TableName: 'jobs',
+    Key: { id: job.id },
+    UpdateExpression: 'SET #processor = :processor',
+    ConditionExpression: 'attribute_not_exists(processor)', // avoids race conditions during uploading
+    ExpressionAttributeNames: { '#processor': 'processor' },
+    ExpressionAttributeValues: { ':processor': processor }
+  });
+
+  db.send(command).catch((err: Error) => {
+    // this type of exception is expected
+    if (err.name !== 'ConditionalCheckFailedException') throw err;
+  });
+});
 
 async function discover(ParentShardId?: string) {
   if (discovery.busy) return;
@@ -25,7 +46,7 @@ async function discover(ParentShardId?: string) {
   discovery.busy = true;
 
   try {
-    const { Table } = await db.send(new DescribeTableCommand({ TableName: 'jobs' }));
+    const { Table } = await client.send(new DescribeTableCommand({ TableName: 'jobs' }));
 
     const { StreamDescription } = await streams.send(
       new DescribeStreamCommand({
@@ -79,7 +100,7 @@ async function poll(ShardId: string) {
         if (!record.dynamodb?.NewImage) return;
 
         try {
-          jobs.emit('change', unmarshall(record.dynamodb.NewImage) as Job);
+          database.emit('change', unmarshall(record.dynamodb.NewImage) as Job);
         } catch (err) {
           console.error('malformed DB image', record.dynamodb.NewImage, err);
         }
