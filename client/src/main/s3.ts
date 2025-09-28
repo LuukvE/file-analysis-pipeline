@@ -19,22 +19,30 @@ export async function upload(path: string): Promise<void> {
 
   return new Promise((resolve, reject) => {
     const uploads: Promise<CompleteMultipartUploadCommandOutput>[] = [];
-    const payload: { size: number; destination?: PassThrough } = { size: 0 };
+
+    const payload: {
+      size: number;
+      chunks: number;
+      destination?: PassThrough;
+    } = {
+      size: 0,
+      chunks: 0
+    };
 
     reset();
 
     xz.on('close', onDone);
-    xz.stdout.on('data', onChunk);
+    xz.stdout.on('data', onData);
     xz.on('error', (err) => kill(`xz Error: ${err.message}`));
     xz.stderr.on('data', (data: Buffer) => console.error(`[xz stderr]: ${data.toString()}`));
 
     source.on('error', (err) => kill(`Read Error: ${err.message}`));
     source.pipe(xz.stdin);
 
-    function onChunk(chunk: Buffer) {
-      payload.destination!.write(chunk);
+    function onData(data: Buffer) {
+      payload.destination!.write(data);
 
-      payload.size += chunk.length;
+      payload.size += data.length;
 
       if (payload.size >= minChunkSize) reset();
     }
@@ -46,7 +54,7 @@ export async function upload(path: string): Promise<void> {
 
       await Promise.all(uploads);
 
-      await setUploaded(id);
+      await setUploaded(id, payload.chunks);
 
       resolve();
     }
@@ -58,6 +66,8 @@ export async function upload(path: string): Promise<void> {
       payload.destination?.end();
 
       payload.size = 0;
+
+      payload.chunks += 1;
 
       payload.destination = new PassThrough();
 

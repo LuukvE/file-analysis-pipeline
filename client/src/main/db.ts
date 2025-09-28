@@ -56,7 +56,7 @@ export const setChunks = async (id: string, index: number) => {
   });
 };
 
-export const setUploaded = async (id: string) => {
+export const setUploaded = async (id: string, chunks: number) => {
   const uploaded = new Date();
   const duration = uploaded.valueOf() - new Date(created[id]).valueOf();
 
@@ -65,13 +65,15 @@ export const setUploaded = async (id: string) => {
   const command = new UpdateCommand({
     TableName: 'jobs',
     Key: { id },
-    UpdateExpression: 'SET #status = :status, #uploaded = :uploaded',
+    UpdateExpression: 'SET #status = :status, #chunks = :chunks, #uploaded = :uploaded',
     ExpressionAttributeNames: {
       '#status': 'status',
+      '#chunks': 'chunks',
       '#uploaded': 'uploaded'
     },
     ExpressionAttributeValues: {
       ':status': Status.UPLOADED,
+      ':chunks': chunks,
       ':uploaded': uploaded.toJSON()
     }
   });
