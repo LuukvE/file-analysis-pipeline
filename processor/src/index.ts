@@ -53,5 +53,6 @@ async function onDownloaded(job: Job) {
 }
 
 async function engineAvailable() {
+  console.log('check if request to', process.env['ENGINE_URL'], 'is still ongoing')
   return true;
 }
