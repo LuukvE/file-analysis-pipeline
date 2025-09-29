@@ -10,6 +10,7 @@ export type Job = {
   bucket: string;
   region: string;
   file: string;
+  mime: string;
   client: string;
   signature?: string;
   status?: Status;

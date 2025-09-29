@@ -10,7 +10,13 @@ const created: Record<string, Date> = {};
 const client = new DynamoDBClient({ region: 'eu-west-1' });
 const db = DynamoDBDocumentClient.from(client);
 
-export const setJob = async (id: string, file: string, bucket: string, region: string) => {
+export const setJob = async (
+  id: string,
+  file: string,
+  mime: string,
+  bucket: string,
+  region: string
+) => {
   created[id] = new Date();
 
   const job: Job = {
@@ -20,6 +26,7 @@ export const setJob = async (id: string, file: string, bucket: string, region: s
     bucket,
     region,
     file,
+    mime,
     client: `client-${publicKey}`
   };
 

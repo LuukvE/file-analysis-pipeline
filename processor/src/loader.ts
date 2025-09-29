@@ -1,30 +1,35 @@
-import { EventEmitter } from 'events';
+import { IncomingMessage, request } from 'http';
 import { spawn } from 'child_process';
-import { createWriteStream } from 'fs';
-import { pipeline, finished } from 'stream/promises';
+import { EventEmitter } from 'events';
+import { finished } from 'stream/promises';
 import { Readable, Writable } from 'stream';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 import { Job, Status } from './types';
+import { database } from './db';
 
-const buffer: {
+const loader = new EventEmitter<{
+  incoming: [job: Job];
+  loaded: [job: Job];
+}>();
+
+export default loader;
+
+export const buffer: {
   job: Job | null;
   s3: Record<string, S3Client>;
   chunks: Promise<Readable>[];
+  request: Promise<Response> | null;
   destination: Writable | null;
 } = {
   job: null,
   s3: {},
   chunks: [],
+  request: null,
   destination: null
 };
 
-export const downloader = new EventEmitter<{
-  incoming: [job: Job];
-  downloaded: [job: Job];
-}>();
-
-downloader.on('incoming', onIncoming);
+loader.on('incoming', onIncoming);
 
 async function onIncoming(job: Job) {
   const options = { region: job.region, useAccelerateEndpoint: true };
@@ -53,17 +58,19 @@ async function onIncoming(job: Job) {
 
   const xz = spawn('xz', ['-d', '-c']);
 
+  xz.on('error', (err) => console.log('xz err', err));
+
   buffer.destination = xz.stdin;
 
-  const stream = createWriteStream(`../dist/${job.file}`);
-
-  pipeline(xz.stdout, stream);
+  engine(job, xz.stdout);
 
   reconstruct(0);
 }
 
 async function reconstruct(chunk: number) {
   if (buffer.job.status === Status.UPLOADED && chunk === buffer.chunks.length) {
+    console.log('File is transferred, stream should end');
+
     buffer.destination.end();
 
     buffer.destination = null;
@@ -72,10 +79,10 @@ async function reconstruct(chunk: number) {
 
     buffer.job = null;
 
-    return downloader.emit('downloaded', buffer.job);
+    return loader.emit('loaded', buffer.job);
   }
 
-  if (!buffer.chunks[chunk]) return downloader.once('incoming', () => reconstruct(chunk));
+  if (!buffer.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
 
   const stream = await buffer.chunks[chunk];
 
@@ -86,4 +93,34 @@ async function reconstruct(chunk: number) {
   console.log('Chunk #%d is loaded!', chunk + 1);
 
   reconstruct(chunk + 1);
+}
+
+function engine(job: Job, stream: Readable) {
+  const options = {
+    hostname: 'engine',
+    port: 8000,
+    path: '/',
+    method: 'POST',
+    headers: { 'Content-Type': job.mime }
+  };
+
+  console.log(options);
+
+  const req = request(options, callback);
+
+  req.on('error', (e) => {
+    console.error(`Problem with request: ${e.message}`);
+  });
+
+  stream.pipe(req);
+
+  function callback(res: IncomingMessage) {
+    let body = '';
+
+    res.setEncoding('utf8');
+
+    res.on('data', (chunk) => (body += chunk));
+
+    res.on('end', () => database.emit('result', job, `${body}`));
+  }
 }

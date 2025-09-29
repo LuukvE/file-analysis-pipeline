@@ -1,22 +1,24 @@
-import { database } from './db';
-import { downloader } from './s3';
 import { Job } from './types';
+import { database } from './db';
+import loader, { buffer } from './loader';
 
 const processor = `processor-${crypto.randomUUID()}`;
 
+console.log('Processor ID:', processor);
+
 const memory: {
   available: Record<string, Job>;
-  downloading: Job | null;
+  loading: Job | null;
   processing: Job | null;
 } = {
   available: {},
-  downloading: null,
+  loading: null,
   processing: null
 };
 
 database.on('change', onChange);
 
-downloader.on('downloaded', onDownloaded);
+loader.on('loaded', onLoaded);
 
 function onChange(job: Job) {
   if (!job.processor) return take(job);
@@ -25,9 +27,9 @@ function onChange(job: Job) {
 
   if (job.processor !== processor) return;
 
-  memory.downloading = job;
+  memory.loading = job;
 
-  downloader.emit('incoming', job);
+  loader.emit('incoming', job);
 }
 
 function take(job: Job) {
@@ -35,24 +37,19 @@ function take(job: Job) {
 
   if (!job.chunks) return;
 
-  if (memory.downloading) return;
+  if (memory.loading) return;
 
   database.emit('take', job, processor);
 }
 
-async function onDownloaded(job: Job) {
-  await engineAvailable();
+async function onLoaded(job: Job) {
+  await buffer.request;
 
   memory.processing = job;
 
-  memory.downloading = null;
+  memory.loading = null;
 
   const newJob = Object.values(memory.available)[0];
 
   if (newJob) database.emit('take', newJob, processor);
-}
-
-async function engineAvailable() {
-  console.log('check if request to', process.env['ENGINE_URL'], 'is still ongoing')
-  return true;
 }

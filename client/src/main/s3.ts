@@ -1,3 +1,4 @@
+import { lookup } from 'mime-types';
 import { PassThrough } from 'stream';
 import { createReadStream } from 'fs';
 import { spawn } from 'child_process';
@@ -13,6 +14,7 @@ export async function upload(path: string): Promise<void> {
   const { bucket, region } = awsBuckets[0];
   const file = `file-${crypto.randomUUID()}`;
   const xz = spawn('xz', ['-c', '-z', '-9e']);
+  const mime = lookup(path) || 'application/octet-stream';
   const s3 = new S3Client({ region, useAccelerateEndpoint: true });
 
   console.log('Incoming', path);
@@ -84,7 +86,7 @@ export async function upload(path: string): Promise<void> {
 
       await uploads[index];
 
-      if (index === 0) return setJob(id, file, bucket, region);
+      if (index === 0) return setJob(id, file, mime, bucket, region);
 
       await setChunks(id, index);
     }

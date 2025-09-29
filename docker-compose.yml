@@ -1,19 +1,23 @@
-version: "3.8"
-
 services:
   processor:
     build:
       context: ./processor
-    container_name: processor
     environment:
-      - ENGINE_URL=http://engine:8000
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION:-eu-west-1}
     depends_on:
       - engine
+    networks:
+      - engine-network
 
   engine:
     build:
       context: ./engine
-    container_name: engine
+    networks:
+      - engine-network
+    expose:
+          - "8000"
+networks:
+  engine-network:
+    driver: bridge

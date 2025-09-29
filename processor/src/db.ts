@@ -8,8 +8,9 @@ import {
   GetShardIteratorCommand
 } from '@aws-sdk/client-dynamodb-streams';
 
-import { Job } from './types';
-import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { Job, Result } from './types';
+import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { encrypt } from './crypto';
 
 const discovery = { busy: false };
 const shards: Record<string, string> = {};
@@ -17,11 +18,10 @@ const client = new DynamoDBClient({ region: 'eu-west-1' });
 const streams = new DynamoDBStreamsClient({ region: 'eu-west-1' });
 const db = DynamoDBDocumentClient.from(client);
 
-discover();
-
 export const database = new EventEmitter<{
   change: [job: Job];
   take: [job: Job, processor: string];
+  result: [job: Job, payload: string];
 }>();
 
 database.on('take', (job, processor) => {
@@ -39,6 +39,20 @@ database.on('take', (job, processor) => {
     if (err.name !== 'ConditionalCheckFailedException') throw err;
   });
 });
+
+database.on('result', async (job, payload) => {
+  const Item: Result = {
+    id: `result-${crypto.randomUUID()}`,
+    client: job.client,
+    payload: encrypt(job.client.substring(7), payload)
+  };
+
+  const command = new PutCommand({ TableName: 'jobs', Item });
+
+  await db.send(command);
+});
+
+discover();
 
 async function discover(ParentShardId?: string) {
   if (discovery.busy) return;
@@ -87,6 +101,8 @@ async function discover(ParentShardId?: string) {
 
     setTimeout(discover, 1000);
   }
+
+  if (!ParentShardId) console.log('Listening to DynamoDB');
 }
 
 async function poll(ShardId: string) {
@@ -98,6 +114,8 @@ async function poll(ShardId: string) {
     setImmediate(() => {
       Records.forEach((record) => {
         if (!record.dynamodb?.NewImage) return;
+
+        console.log('DynamoDB change detected');
 
         try {
           database.emit('change', unmarshall(record.dynamodb.NewImage) as Job);
