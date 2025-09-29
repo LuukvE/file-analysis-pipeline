@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { DescribeTableCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import {
   DescribeStreamCommand,
   DynamoDBStreamsClient,
@@ -9,11 +10,11 @@ import {
 } from '@aws-sdk/client-dynamodb-streams';
 
 import { Job, Result } from './types';
-import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { encrypt } from './crypto';
 
-const discovery = { busy: false };
+const discovery = { start: new Date() };
 const shards: Record<string, string> = {};
+const updateDates: Record<string, Date> = {};
 const client = new DynamoDBClient({ region: 'eu-west-1' });
 const streams = new DynamoDBStreamsClient({ region: 'eu-west-1' });
 const db = DynamoDBDocumentClient.from(client);
@@ -54,11 +55,9 @@ database.on('result', async (job, payload) => {
 
 discover();
 
+cleanup();
+
 async function discover(ParentShardId?: string) {
-  if (discovery.busy) return;
-
-  discovery.busy = true;
-
   try {
     const { Table } = await client.send(new DescribeTableCommand({ TableName: 'jobs' }));
 
@@ -69,40 +68,36 @@ async function discover(ParentShardId?: string) {
       })
     );
 
-    discovery.busy = false;
+    await Promise.all(
+      StreamDescription.Shards.map(async function getIterator({ ShardId }) {
+        if (shards[ShardId]) return;
 
-    StreamDescription.Shards.forEach(async function getIterator({ ShardId }) {
-      if (shards[ShardId]) return;
+        const ShardIteratorType = ParentShardId ? 'TRIM_HORIZON' : 'LATEST';
 
-      const ShardIteratorType = ParentShardId ? 'TRIM_HORIZON' : 'LATEST';
+        try {
+          const { ShardIterator } = await streams.send(
+            new GetShardIteratorCommand({
+              ShardId,
+              ShardIteratorType,
+              StreamArn: Table.LatestStreamArn
+            })
+          );
 
-      try {
-        const { ShardIterator } = await streams.send(
-          new GetShardIteratorCommand({
-            ShardId,
-            ShardIteratorType,
-            StreamArn: Table.LatestStreamArn
-          })
-        );
+          shards[ShardId] = ShardIterator;
 
-        shards[ShardId] = ShardIterator;
+          poll(ShardId);
+        } catch (err) {
+          console.error(err);
 
-        poll(ShardId);
-      } catch (err) {
-        console.error(err);
-
-        setTimeout(getIterator, 1000, { ShardId });
-      }
-    });
+          setTimeout(getIterator, 1000, { ShardId });
+        }
+      })
+    );
   } catch (err) {
     console.error(err);
 
-    discovery.busy = false;
-
     setTimeout(discover, 1000);
   }
-
-  if (!ParentShardId) console.log('Listening to DynamoDB');
 }
 
 async function poll(ShardId: string) {
@@ -112,17 +107,35 @@ async function poll(ShardId: string) {
     );
 
     setImmediate(() => {
-      Records.forEach((record) => {
-        if (!record.dynamodb?.NewImage) return;
-
-        console.log('DynamoDB change detected');
+      const records = Records.reduce((grouped: Record<string, unknown>, record) => {
+        if (!record.dynamodb?.NewImage) return grouped;
 
         try {
-          database.emit('change', unmarshall(record.dynamodb.NewImage) as Job);
+          const job = unmarshall(record.dynamodb.NewImage);
+
+          if (!job.id) return grouped;
+
+          if (discovery.start > record.dynamodb.ApproximateCreationDateTime) return;
+
+          if (updateDates[job.id] >= record.dynamodb.ApproximateCreationDateTime) return;
+
+          updateDates[job.id] = record.dynamodb.ApproximateCreationDateTime;
+
+          grouped[job.id] = job;
         } catch (err) {
           console.error('malformed DB image', record.dynamodb.NewImage, err);
         }
-      });
+
+        return grouped;
+      }, {});
+
+      const jobs = Object.values(records);
+
+      if (!jobs.length) return;
+
+      console.log(`%s: DB jobs:${jobs.length}`, new Date().toJSON());
+
+      Object.values(jobs).forEach((job: Job) => database.emit('change', job));
     });
 
     if (NextShardIterator) {
@@ -141,4 +154,15 @@ async function poll(ShardId: string) {
 
     setTimeout(poll, 1000, ShardId);
   }
+}
+
+function cleanup() {
+  setTimeout(cleanup, 3600000); // hourly loop
+
+  // TRIM_HORIZON is 24 hours, we remove only dates that exceed that time + some margin
+  const twentyFiveHoursAgo = new Date(Date.now() - 90000000);
+
+  Object.entries(updateDates).map(([id, date]) => {
+    if (date < twentyFiveHoursAgo) delete updateDates[id];
+  });
 }
