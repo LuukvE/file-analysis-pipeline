@@ -48,7 +48,9 @@ database.on('result', async (job, payload) => {
     payload: encrypt(job.client.substring(7), payload)
   };
 
-  const command = new PutCommand({ TableName: 'jobs', Item });
+  console.log('result', Item);
+
+  const command = new PutCommand({ TableName: 'results', Item });
 
   await db.send(command);
 });
@@ -115,9 +117,10 @@ async function poll(ShardId: string) {
 
           if (!job.id) return grouped;
 
-          if (discovery.start > record.dynamodb.ApproximateCreationDateTime) return;
+          if (discovery.start > record.dynamodb.ApproximateCreationDateTime) return grouped;
 
-          if (updateDates[job.id] >= record.dynamodb.ApproximateCreationDateTime) return;
+          // TODO: Handle same-milisecond updates better
+          if (updateDates[job.id] > record.dynamodb.ApproximateCreationDateTime) return grouped;
 
           updateDates[job.id] = record.dynamodb.ApproximateCreationDateTime;
 
@@ -133,7 +136,7 @@ async function poll(ShardId: string) {
 
       if (!jobs.length) return;
 
-      console.log(`%s: DB jobs:${jobs.length}`, new Date().toJSON());
+      console.log(jobs);
 
       Object.values(jobs).forEach((job: Job) => database.emit('change', job));
     });

@@ -15,7 +15,7 @@ const loader = new EventEmitter<{
 
 export default loader;
 
-export const buffer: {
+export const memory: {
   job: Job | null;
   s3: Record<string, S3Client>;
   chunks: Promise<Readable>[];
@@ -34,19 +34,19 @@ loader.on('incoming', onIncoming);
 async function onIncoming(job: Job) {
   const options = { region: job.region, useAccelerateEndpoint: true };
 
-  buffer.s3[job.region] = buffer.s3[job.region] || new S3Client(options);
+  memory.s3[job.region] = memory.s3[job.region] || new S3Client(options);
 
-  buffer.job = job;
+  memory.job = job;
 
   if (!job.chunks) return;
 
   for (let i = 0; i < job.chunks; i++) {
-    if (buffer.chunks[i]) continue;
+    if (memory.chunks[i]) continue;
 
     const input = { Bucket: job.bucket, Key: `${job.file}-${i}` };
 
-    buffer.chunks[i] = (async () => {
-      const output = await buffer.s3[job.region].send(new GetObjectCommand(input));
+    memory.chunks[i] = (async () => {
+      const output = await memory.s3[job.region].send(new GetObjectCommand(input));
 
       if (!(output.Body instanceof Readable)) throw `Invalid S3 file, index ${i}`;
 
@@ -54,13 +54,13 @@ async function onIncoming(job: Job) {
     })();
   }
 
-  if (buffer.destination) return;
+  if (memory.destination) return;
 
   const xz = spawn('xz', ['-d', '-c']);
 
   xz.on('error', (err) => console.log('xz err', err));
 
-  buffer.destination = xz.stdin;
+  memory.destination = xz.stdin;
 
   engine(job, xz.stdout);
 
@@ -68,29 +68,33 @@ async function onIncoming(job: Job) {
 }
 
 async function reconstruct(chunk: number) {
-  if (buffer.job.status === Status.UPLOADED && chunk === buffer.chunks.length) {
+  console.log(
+    'reconstruct',
+    memory.job.status,
+    chunk === memory.chunks.length ? 'DONE' : 'STILL PROCESSING'
+  );
+
+  if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) {
     console.log('File is transferred, stream should end');
 
-    buffer.destination.end();
+    memory.destination.end();
 
-    buffer.destination = null;
+    memory.destination = null;
 
-    buffer.chunks = [];
+    memory.chunks = [];
 
-    buffer.job = null;
+    memory.job = null;
 
-    return loader.emit('loaded', buffer.job);
+    return;
   }
 
-  if (!buffer.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
+  if (!memory.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
 
-  const stream = await buffer.chunks[chunk];
+  const stream = await memory.chunks[chunk];
 
-  stream.pipe(buffer.destination, { end: false });
+  stream.pipe(memory.destination, { end: false });
 
   await finished(stream);
-
-  console.log('Chunk #%d is loaded!', chunk + 1);
 
   reconstruct(chunk + 1);
 }
