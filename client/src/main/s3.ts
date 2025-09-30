@@ -1,12 +1,21 @@
+import { app } from 'electron';
 import { lookup } from 'mime-types';
 import { PassThrough } from 'stream';
 import { createReadStream } from 'fs';
 import { spawn } from 'child_process';
+import { decrypt } from 'shared/crypto';
+import { DynamoDB } from 'shared/dynamodb';
 import { Upload } from '@aws-sdk/lib-storage';
+import { Job, Result, Status } from 'shared/types';
 import { CompleteMultipartUploadCommandOutput, S3Client } from '@aws-sdk/client-s3';
 
-import { setChunks, setJob, setUploaded } from './db';
-import { awsBuckets, minChunkSize } from './settings';
+import { awsBuckets, minChunkSize, privateKey, publicKey } from './settings';
+
+const db = new DynamoDB();
+
+db.on('change:results', (result: Result) => {
+  console.log('Engine Result:', decrypt(privateKey, result.payload));
+});
 
 export async function upload(path: string): Promise<void> {
   const source = createReadStream(path);
@@ -56,7 +65,7 @@ export async function upload(path: string): Promise<void> {
 
       await Promise.all(uploads);
 
-      await setUploaded(id, payload.chunks);
+      await db.update({ id, chunks: payload.chunks, status: Status.UPLOADED }, 'jobs');
 
       resolve();
     }
@@ -86,9 +95,20 @@ export async function upload(path: string): Promise<void> {
 
       await uploads[index];
 
-      if (index === 0) return setJob(id, file, mime, bucket, region);
+      if (index > 0) return db.update({ id, chunks: index + 1 }, 'jobs', '#chunks < :chunks');
 
-      await setChunks(id, index);
+      const job: Job = {
+        id,
+        version: app.getVersion(),
+        created: new Date().toJSON(),
+        bucket,
+        region,
+        file,
+        mime,
+        client: `client-${publicKey}`
+      };
+
+      return db.create<Job>(job, 'jobs');
     }
 
     function kill(err: string) {

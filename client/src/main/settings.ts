@@ -1,8 +1,8 @@
-import { BrowserWindowConstructorOptions } from 'electron';
 import { join } from 'path';
+import { generate } from 'shared/crypto';
+import { BrowserWindowConstructorOptions } from 'electron';
 
 import icon from '../../resources/icon.png?asset';
-import { generate } from './crypto';
 
 export const rendererUrl = process.env['ELECTRON_RENDERER_URL']; // Set in dev
 
@@ -21,10 +21,10 @@ export const windowOptions: BrowserWindowConstructorOptions = {
 
 // Test nearby regions with: https://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html?region=
 export const awsBuckets = [
-  'eu-west-1/dublin-file-analysis-pipeline-bucket',
-  'eu-central-1/my-frankfurt-bucket',
-  'eu-west-2/my-london-bucket',
-  'eu-west-3/my-paris-bucket'
+  'eu-west-1/dublin-file-analysis-pipeline-bucket'
+  // 'eu-central-1/my-frankfurt-bucket',
+  // 'eu-west-2/my-london-bucket',
+  // 'eu-west-3/my-paris-bucket'
 ].map((dest) => {
   const [region, bucket] = dest.split('/');
 

@@ -22,7 +22,8 @@ export class Stream<T extends { id: string } = any> {
   shards: Record<string, string> = {};
   listener: (item: T, date: Date) => void;
 
-  constructor(table: string, listener: (item: T, date: Date) => void) {
+  constructor(db: DynamoDB, table: string, listener: (item: T, date: Date) => void) {
+    this.db = db;
     this.table = table;
     this.listener = listener;
 
@@ -69,7 +70,7 @@ export class Stream<T extends { id: string } = any> {
     } catch (err) {
       console.error(err);
 
-      setTimeout(this.getIterator, 1000, ShardId, ParentShardId, StreamArn);
+      setTimeout(this.getIterator, this.pollingSpeed, ShardId, ParentShardId, StreamArn);
     }
   }
 
@@ -78,14 +79,7 @@ export class Stream<T extends { id: string } = any> {
       const recordsCommand = new GetRecordsCommand({ ShardIterator: this.shards[ShardId] });
       const { Records, NextShardIterator } = await this.db.streamsClient.send(recordsCommand);
 
-      setImmediate(() => {
-        const records = Records.reduce(this.recordReducer, {});
-        const items = Object.values(records);
-
-        if (!items.length) return;
-
-        Object.values(items).forEach((item: T) => this.listener(item, this.memory[item.id]));
-      });
+      setImmediate(() => this.processRecords(Records));
 
       if (NextShardIterator) {
         this.shards[ShardId] = NextShardIterator;
@@ -105,30 +99,35 @@ export class Stream<T extends { id: string } = any> {
     }
   }
 
-  recordReducer(
-    grouped: Record<string, unknown>,
-    record: GetRecordsCommandOutput['Records'][number]
-  ) {
-    if (!record.dynamodb?.NewImage) return grouped;
+  processRecords(records: GetRecordsCommandOutput['Records']) {
+    const grouped = records.reduce((grouped: Record<string, unknown>, record) => {
+      if (!record.dynamodb?.NewImage) return grouped;
 
-    try {
-      const item = unmarshall(record.dynamodb.NewImage);
+      try {
+        const item = unmarshall(record.dynamodb.NewImage);
 
-      if (!item.id) return grouped;
+        if (!item.id) return grouped;
 
-      if (this.start > record.dynamodb.ApproximateCreationDateTime) return grouped;
+        if (this.start > record.dynamodb.ApproximateCreationDateTime) return grouped;
 
-      // TODO: Handle same-milisecond updates better
-      if (this.memory[item.id] > record.dynamodb.ApproximateCreationDateTime) return grouped;
+        // TODO: Handle same-milisecond updates better
+        if (this.memory[item.id] > record.dynamodb.ApproximateCreationDateTime) return grouped;
 
-      this.memory[item.id] = record.dynamodb.ApproximateCreationDateTime;
+        this.memory[item.id] = record.dynamodb.ApproximateCreationDateTime;
 
-      grouped[item.id] = item;
-    } catch (err) {
-      console.error('malformed DB image', record.dynamodb.NewImage, err);
-    }
+        grouped[item.id] = item;
+      } catch (err) {
+        console.error('malformed DB image', record.dynamodb.NewImage, err);
+      }
 
-    return grouped;
+      return grouped;
+    }, {});
+
+    const items = Object.values(grouped);
+
+    if (!items.length) return;
+
+    Object.values(items).forEach((item: T) => this.listener(item, this.memory[item.id]));
   }
 
   cleanup() {
@@ -163,12 +162,12 @@ export class DynamoDB extends EventEmitter {
     this.streamsClient = new DynamoDBStreamsClient({ region });
     this.documentClient = DynamoDBDocumentClient.from(this.client);
 
-    this.on('newListener', (event: string | symbol, listener: (...args: any[]) => void) => {
+    this.on('newListener', (event, listener) => {
       const [name, table] = event.toString().split(':');
 
       if (name !== 'change' || !table) return;
 
-      const stream = new Stream(table, listener);
+      const stream = new Stream(this, table, listener);
 
       this.streams.push(stream);
     });
@@ -197,6 +196,8 @@ export class DynamoDB extends EventEmitter {
 
     const memo = Object.entries(item).reduce(
       (memo: Memo, [key, value]) => {
+        if (key === 'id') return memo;
+
         memo.names[`#${key}`] = key;
         memo.values[`:${key}`] = value;
         memo.expressions.push(`#${key} = :${key}`);

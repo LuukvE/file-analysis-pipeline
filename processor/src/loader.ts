@@ -1,16 +1,15 @@
-import { IncomingMessage, request } from 'http';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { finished } from 'stream/promises';
+import { Job, Status } from 'shared/types';
 import { Readable, Writable } from 'stream';
+import { IncomingMessage, request } from 'http';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-
-import { Job, Status } from './types';
-import { database } from './db';
 
 const loader = new EventEmitter<{
   incoming: [job: Job];
   loaded: [job: Job];
+  processed: [job: Job, result: string];
 }>();
 
 export default loader;
@@ -68,25 +67,7 @@ async function onIncoming(job: Job) {
 }
 
 async function reconstruct(chunk: number) {
-  console.log(
-    'reconstruct',
-    memory.job.status,
-    chunk === memory.chunks.length ? 'DONE' : 'STILL PROCESSING'
-  );
-
-  if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) {
-    console.log('File is transferred, stream should end');
-
-    memory.destination.end();
-
-    memory.destination = null;
-
-    memory.chunks = [];
-
-    memory.job = null;
-
-    return;
-  }
+  if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) return finish();
 
   if (!memory.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
 
@@ -99,6 +80,16 @@ async function reconstruct(chunk: number) {
   reconstruct(chunk + 1);
 }
 
+function finish() {
+  memory.destination.end();
+
+  memory.destination = null;
+
+  memory.chunks = [];
+
+  memory.job = null;
+}
+
 function engine(job: Job, stream: Readable) {
   const options = {
     hostname: 'engine',
@@ -108,23 +99,19 @@ function engine(job: Job, stream: Readable) {
     headers: { 'Content-Type': job.mime }
   };
 
-  console.log(options);
+  const req = request(options, (res) => engineHandler(job, res));
 
-  const req = request(options, callback);
-
-  req.on('error', (e) => {
-    console.error(`Problem with request: ${e.message}`);
-  });
+  req.on('error', (e) => console.error(`Problem with request: ${e.message}`));
 
   stream.pipe(req);
+}
 
-  function callback(res: IncomingMessage) {
-    let body = '';
+function engineHandler(job: Job, res: IncomingMessage) {
+  let body = '';
 
-    res.setEncoding('utf8');
+  res.setEncoding('utf8');
 
-    res.on('data', (chunk) => (body += chunk));
+  res.on('data', (chunk) => (body += chunk));
 
-    res.on('end', () => database.emit('result', job, `${body}`));
-  }
+  res.on('end', () => loader.emit('processed', job, `${body}`));
 }

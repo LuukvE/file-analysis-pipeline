@@ -1,7 +1,8 @@
 services:
   processor:
     build:
-      context: ./processor
+      context: .
+      dockerfile: ./processor/Dockerfile
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -15,7 +16,7 @@ services:
     networks:
       - engine-network
     expose:
-          - "8000"
+      - "8000"
 networks:
   engine-network:
     driver: bridge

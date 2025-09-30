@@ -3,14 +3,15 @@
   "version": "0.0.1",
   "author": "Luuk van Egeraat",
   "scripts": {
-    "dev": "bun src"
+    "dev": "bun ./src"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.896.0",
     "@aws-sdk/client-dynamodb-streams": "^3.898.0",
     "@aws-sdk/client-s3": "^3.896.0",
     "@aws-sdk/lib-dynamodb": "^3.896.0",
-    "@aws-sdk/lib-storage": "^3.896.0"
+    "@aws-sdk/lib-storage": "^3.896.0",
+    "shared": "file:../shared"
   },
   "devDependencies": {
     "@types/node": "^20.x",

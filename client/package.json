@@ -32,7 +32,8 @@
     "chokidar": "^4.0.3",
     "electron-updater": "^6.3.9",
     "mime-types": "^3.0.1",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "shared": "file:../shared"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

@@ -1,13 +1,14 @@
-import { Job } from './types';
-import { database } from './db';
+import { Job } from 'shared/types';
 import loader, { memory } from './loader';
+import { DynamoDB } from 'shared/dynamodb';
 
-const processor = `processor-${crypto.randomUUID()}`;
+const db = new DynamoDB();
 const available: Record<string, Job> = {};
+const processor = `processor-${crypto.randomUUID()}`;
 
-database.on('change', onChange);
+db.on('change:jobs', onChange);
 
-database.on('result', onResult);
+loader.on('processed', onProcessed);
 
 function onChange(job: Job) {
   console.log('changed', job);
@@ -21,6 +22,12 @@ function onChange(job: Job) {
   loader.emit('incoming', job);
 }
 
+async function onProcessed() {
+  const newJob = Object.values(available)[0];
+
+  if (newJob) take(newJob);
+}
+
 function take(job: Job) {
   available[job.id] = job;
 
@@ -30,11 +37,5 @@ function take(job: Job) {
 
   if (memory.job) return;
 
-  database.emit('take', job, processor);
-}
-
-async function onResult() {
-  const newJob = Object.values(available)[0];
-
-  if (newJob) take(newJob);
+  db.update(job, 'jobs', 'attribute_not_exists(processor)');
 }
