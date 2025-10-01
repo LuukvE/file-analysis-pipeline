@@ -131,7 +131,7 @@ export class Stream<T extends { id: string } = any> {
   }
 
   cleanup() {
-    this.cleanupTimeout = setTimeout(this.cleanup, 3600000); // hourly loop
+    this.cleanupTimeout = setTimeout(() => this.cleanup(), 3600000); // hourly loop
 
     // TRIM_HORIZON is 24 hours, we remove only dates that exceed that time + some margin
     const twentyFiveHoursAgo = new Date(Date.now() - 90000000);

@@ -1,6 +1,7 @@
-import { Job } from 'shared/types';
+import { Job, Result } from 'shared/types';
 import loader, { memory } from './loader';
 import { DynamoDB } from 'shared/dynamodb';
+import { encrypt } from 'shared/crypto';
 
 const db = new DynamoDB();
 const available: Record<string, Job> = {};
@@ -22,7 +23,15 @@ function onChange(job: Job) {
   loader.emit('incoming', job);
 }
 
-async function onProcessed() {
+async function onProcessed(job: Job, payload: string) {
+  const result: Result = {
+    id: `result-${crypto.randomUUID()}`,
+    client: job.client,
+    payload: encrypt(job.client.substring(7), payload)
+  };
+
+  await db.create<Result>(result, 'results');
+
   const newJob = Object.values(available)[0];
 
   if (newJob) take(newJob);
@@ -37,7 +46,7 @@ function take(job: Job) {
 
   if (memory.job) return;
 
-  console.log('update', { id: job.id, processor })
+  console.log('update', { id: job.id, processor });
 
   db.update({ id: job.id, processor }, 'jobs', 'attribute_not_exists(processor)');
 }

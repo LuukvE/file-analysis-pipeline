@@ -31,14 +31,15 @@ export const memory: {
 loader.on('incoming', onIncoming);
 
 async function onIncoming(job: Job) {
+  console.log('incoming', job.id);
   const options = { region: job.region, useAccelerateEndpoint: true };
-
-  memory.s3[job.region] = memory.s3[job.region] || new S3Client(options);
 
   memory.job = job;
 
-  if (!job.chunks) return;
+  memory.s3[job.region] = memory.s3[job.region] || new S3Client(options);
 
+  if (!job.chunks) return;
+  console.log('ready to download #chunks', job.chunks);
   for (let i = 0; i < job.chunks; i++) {
     if (memory.chunks[i]) continue;
 
@@ -67,6 +68,7 @@ async function onIncoming(job: Job) {
 }
 
 async function reconstruct(chunk: number) {
+  console.log('reconstructing', chunk, memory.job.status, memory.chunks.length);
   if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) return finish();
 
   if (!memory.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
@@ -88,6 +90,8 @@ function finish() {
   memory.chunks = [];
 
   memory.job = null;
+
+  console.log('finished');
 }
 
 function engine(job: Job, stream: Readable) {
@@ -102,6 +106,8 @@ function engine(job: Job, stream: Readable) {
   const req = request(options, (res) => engineHandler(job, res));
 
   req.on('error', (e) => console.error(`Problem with request: ${e.message}`));
+
+  console.log('streaming to xz');
 
   stream.pipe(req);
 }
