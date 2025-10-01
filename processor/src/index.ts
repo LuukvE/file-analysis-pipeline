@@ -31,11 +31,13 @@ async function onProcessed() {
 function take(job: Job) {
   available[job.id] = job;
 
-  console.log('emitting take', job.id, job.chunks);
+  console.log('emitting take', job.id, job.chunks, memory.job);
 
   if (!job.chunks) return;
 
   if (memory.job) return;
 
-  db.update(job, 'jobs', 'attribute_not_exists(processor)');
+  console.log('update', { id: job.id, processor })
+
+  db.update({ id: job.id, processor }, 'jobs', 'attribute_not_exists(processor)');
 }

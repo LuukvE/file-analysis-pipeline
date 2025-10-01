@@ -1,0 +1,7 @@
+{
+  "name": "file-analysis-pipeline",
+  "workspaces": [
+    "processor",
+    "shared"
+  ]
+}

@@ -206,7 +206,14 @@ export class DynamoDB extends EventEmitter {
       },
       { expressions: [], names: {}, values: {} }
     );
-
+    console.log({
+      TableName: table,
+      Key: { id: item.id },
+      UpdateExpression: `SET ${memo.expressions.join(', ')}`,
+      ConditionExpression: condition,
+      ExpressionAttributeNames: memo.names,
+      ExpressionAttributeValues: memo.values
+    });
     const command = new UpdateCommand({
       TableName: table,
       Key: { id: item.id },

@@ -1,17 +1,17 @@
-FROM oven/bun:1-alpine AS builder
+FROM oven/bun:latest AS builder
 WORKDIR /app
-COPY processor/package.json ./processor
-COPY shared .
-WORKDIR /app/processor
+COPY package.json bun.lock ./
+COPY processor/package.json ./processor/
+COPY shared/package.json ./shared/
 RUN bun install --production
-COPY ./processor/src ./src
+COPY shared/ ./shared/
+COPY processor/src ./processor/src
 
-FROM oven/bun:1-alpine AS production
-RUN apk add --no-cache xz
+FROM oven/bun:latest AS production
+RUN apt-get update && apt-get install -y --no-install-recommends xz-utils && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=builder --chown=bun:bun /app .
 WORKDIR /app/processor
-COPY --from=builder --chown=bun:bun /app/processor/node_modules ./node_modules
-COPY --from=builder --chown=bun:bun /app/processor/src ./src
-COPY --from=builder --chown=bun:bun /app/processor/package.json ./
 USER bun
 CMD ["bun", "run", "src"]
 
