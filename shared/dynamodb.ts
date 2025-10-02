@@ -49,7 +49,7 @@ export class Stream<T extends { id: string } = any> {
     } catch (err) {
       console.error(err);
 
-      setTimeout(this.discover, this.pollingSpeed);
+      setTimeout(() => this.discover(ParentShardId), this.pollingSpeed);
     }
   }
 
@@ -70,7 +70,7 @@ export class Stream<T extends { id: string } = any> {
     } catch (err) {
       console.error(err);
 
-      setTimeout(this.getIterator, this.pollingSpeed, ShardId, ParentShardId, StreamArn);
+      setTimeout(() => this.getIterator(ShardId, ParentShardId, StreamArn), this.pollingSpeed);
     }
   }
 
@@ -95,7 +95,7 @@ export class Stream<T extends { id: string } = any> {
     } catch (err) {
       console.error(err);
 
-      setTimeout(this.poll, 1000, ShardId);
+      setTimeout(() => this.poll(ShardId), 1000);
     }
   }
 
