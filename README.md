@@ -10,14 +10,14 @@ This is a system aimed at importing files from desktop computers, delivering the
 - 🚀 **Distributed Scaling -** Jobs are handled by a network of processors
 - 🔒 **Private Results -** Results are encrypted so that only the uploader can decrypt them
 - 🛡️ **Attack Mitigation -** Processors are shielded from attacks by having no open inbound ports
-- ⚙️ **Controlled Updates -** Users choose when to update, while devs can still introduce breaking changes
+- 🔄 **Controlled Updates -** Users choose when to update, while devs can still introduce breaking changes
 
 ## Architecture
 
-- __Client:__ Watch directory, Stream files, Sign up / in, Show system state, Manage organisations and users
-- __Server:__ Create Presigned Upload URLs, Database management, Role-based authorization, SSO authentication
-- __Processor:__ Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
-- __Engine:__ Perform file analysis, my example just counts file size _- Replace this with your AI_
+- 💻 __Client:__ Watch directory, Stream files, Sign up / in, Show system state, Manage organisations and users
+- 🌐 __Server:__ Create Presigned Upload URLs, Database management, Role-based authorization, SSO authentication
+- ⚙️ __Processor:__ Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
+- 🤖 __Engine:__ Perform file analysis, my example just counts file size _- Replace this with your AI_
 
 ## Reasoning
 
