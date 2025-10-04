@@ -1,8 +1,8 @@
 # File Analysis Pipeline
 
-A secure, scalable pipeline for your existing data analysis engine.
+__Currently under development.__ A secure, scalable pipeline for your existing data analysis engine.
 
-This is a prototype aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back results. Supports both cloud- and on-premise Docker containers. All authentication and communication is provided by AWS IAM, S3 and DynamoDB services.
+This is a system aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back results.
 
 ## Features
 
@@ -14,32 +14,24 @@ This is a prototype aimed at importing files from desktop computers, delivering 
 
 ## Architecture
 
-### Client: _Electron_
+- __Client:__ Watch directory, Stream files, Sign up / in, Show system state, Manage organisations and users
+- __Server:__ Create Presigned Upload URLs, Database management, Role-based authorization, SSO authentication
+- __Processor:__ Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
+- __Engine:__ Perform file analysis, my example just counts file size _- Replace this with your AI_
 
-1. Watch a folder for new files
-2. Convert file into stream of compressed chunks _- xz_
-3. Upload chunks _- S3_
-4. Create job _- DynamoDB_
-5. Listen for results _- DynamoDB Streams_
+## Reasoning
 
-### Processor: _Docker Container_
-
-1. Listen for new jobs _- DynamoDB Streams_
-2. Validate signature
-3. Take job _- DynamoDB_
-4. Download and delete chunks _- S3_
-5. Recreate file _- xz_
-6. Send file _- Engine_
-7. Receive payload _- Engine_
-8. Encrypt payload
-9. Create result _- DynamoDB_
-10. Delete local file
-
-### Engine: _Docker Container_
-
-1. Receive file
-2. **Run your analysis software**
-3. Send back JSON payload
+- Compress large files using multiple CPUs. The speed increase from having less to send over the network will outweigh the speed decrease of heavy compression.
+- Chunk up large files while compressing them to avoid intermediate disk I/O and to allow for the processor to download the chunks already uploaded.
+- Upload directly to S3. Reducing the file transfer time to S3 involves cutting out systems from the pipeline, direct client to S3 uploads are ideal.
+- Use pre-signed upload URLs. Presigning gives the server the ability to authorize clients on a per-upload basis. Clients can be restricted when the limit of their payment plan is reached.
+- Use SSO for authentication. Businesses already have on- and off-boarding procedures in-place. By using Microsoft and Google SSO, this system tries to minimise operational requirements.
+- Use S3 _(binary data)_ and a custom NestJS server _(JSON data)_. This enables the processor with attached engine to pull data instead of requiring open inbound ports.
+- Leverage the increased throughput of file transfers within AWS networks, which could outperform a direct client to processor upload stream depending on the network connections and usage.
+- Support continuous deployments of new versions of each part of the stack, including versions with breaking changes. By using multiple processors that could be written for different versions, it allows gradual upgrading.
+- Give clients control over their upgrade. Since customers might wish to run their own internal tests before adoption. This feature is especially important for critical systems managed by external customers.
+- Use docker-compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
+- Make use of LocalStack and AWS Cloud Development Kit to make the AWS-related services _(S3, DynamoDB, IAM, ECS with Fargate)_ easily deployable and their configuration part of the projects source control.
 
 ## Data Structure
 
