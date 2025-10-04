@@ -1,18 +1,28 @@
 #!/bin/bash
 
-AWS_PROFILE="default"
-
-export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile $AWS_PROFILE)
-export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile $AWS_PROFILE)
-export AWS_REGION=$(aws configure get region --profile $AWS_PROFILE)
-
-if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-    echo "Error: No AWS credentials"
-    exit 1
+if [ "$1" = "clean" ]; then
+  docker ps -a -q | xargs -r docker rm -f
+  rm -rf ./aws/data/*/
+  rm -f ./.env
+  exit 0
 fi
 
-docker-compose up --build
+if [ "$1" = "down" ]; then
+  docker compose --profile dev down
+  exit 0
+fi
 
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
-unset AWS_REGION
+set -e
+
+if [ ! -f "./.env" ]; then
+  docker compose up -d setup
+  while ! docker compose logs --no-log-prefix setup | grep -q "Ready."; do
+    sleep 1
+  done
+  docker compose stop setup
+  docker compose rm -f setup
+fi
+
+trap "docker compose --profile dev down" SIGINT SIGTERM
+
+docker compose --profile dev up --build

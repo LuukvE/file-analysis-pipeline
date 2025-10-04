@@ -30,7 +30,7 @@ This is a system aimed at importing files from desktop computers, delivering the
 - Leverage the increased throughput of file transfers within AWS networks, which could outperform a direct client to processor upload stream depending on the network connections and usage.
 - Support continuous deployments of new versions of each part of the stack, including versions with breaking changes. By using multiple processors that could be written for different versions, it allows gradual upgrading.
 - Give clients control over their upgrade. Since customers might wish to run their own internal tests before adoption. This feature is especially important for critical systems managed by external customers.
-- Use docker-compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
+- Use Docker Compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
 - Make use of LocalStack and AWS Cloud Development Kit to make the AWS-related services _(S3, DynamoDB, IAM, ECS with Fargate)_ easily deployable and their configuration part of the projects source control.
 
 ## Data Structure

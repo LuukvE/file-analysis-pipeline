@@ -1,3 +1,11 @@
+// TODO: Presigned URLs and NestJS server instead of direct AWS SDK
+process.env['AWS_REGION'] = 'eu-west-1';
+process.env['AWS_ENDPOINT_URL'] = 'http://127.0.0.1:4566';
+
+// These values are fake - for localstack emulator
+process.env['AWS_ACCESS_KEY_ID'] = 'LKIAQAAAAAAAN3S73MPM';
+process.env['AWS_SECRET_ACCESS_KEY'] = 'l4hJ5Uvcf0UaFOJtrFp2Bj8OAAhq444LPeLt6Dyi';
+
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { join } from 'path';

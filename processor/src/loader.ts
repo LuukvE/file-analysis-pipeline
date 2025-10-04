@@ -32,11 +32,10 @@ loader.on('incoming', onIncoming);
 
 async function onIncoming(job: Job) {
   console.log('incoming', job.id);
-  const options = { region: job.region, useAccelerateEndpoint: true };
 
   memory.job = job;
 
-  memory.s3[job.region] = memory.s3[job.region] || new S3Client(options);
+  memory.s3[job.region] = memory.s3[job.region] || new S3Client({ forcePathStyle: true });
 
   if (!job.chunks) return;
   console.log('ready to download #chunks', job.chunks);

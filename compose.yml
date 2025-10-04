@@ -1,0 +1,71 @@
+services:
+  setup:
+    image: localstack/localstack:latest
+    profiles:
+      - setup
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - SERVICES=iam,s3,dynamodb
+      - SNAPSHOT_SAVE_STRATEGY=ON_REQUEST
+    volumes:
+      - "./aws/setup:/etc/localstack/init/ready.d"
+      - "./aws/data:/var/lib/localstack"
+      - ./:/monorepo
+
+  aws:
+    build:
+      context: ./aws
+    profiles:
+      - dev
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - ENFORCE_IAM=1
+      - SERVICES=iam,s3,dynamodb
+      - SNAPSHOT_LOAD_STRATEGY=ON_STARTUP
+    volumes:
+      - "./aws/dev:/etc/localstack/init/ready.d"
+      - "./aws/data:/var/lib/localstack"
+    networks:
+      - bridge-network
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal dynamodbstreams list-streams --table-name jobs --region eu-west-1 | jq -e '.Streams | length > 0' > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  engine:
+    build:
+      context: ./engine
+    profiles:
+      - dev
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - bridge-network
+    expose:
+      - "8000"
+
+  processor:
+    build:
+      context: .
+      dockerfile: ./processor/Dockerfile
+    profiles:
+      - dev
+    environment:
+      - AWS_ACCESS_KEY_ID=${PROCESSOR_AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${PROCESSOR_AWS_SECRET_ACCESS_KEY:-}
+      - AWS_ENDPOINT_URL=http://aws:4566
+      - AWS_REGION=eu-west-1
+    networks:
+      - bridge-network
+    depends_on:
+      aws:
+        condition: service_healthy
+
+networks:
+  bridge-network:
+    driver: bridge

@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::bucket-file-analysis-pipeline/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:GetItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:ListStreams"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-1:000000000000:table/jobs",
+        "arn:aws:dynamodb:eu-west-1:000000000000:table/jobs/stream/*",
+        "arn:aws:dynamodb:eu-west-1:000000000000:table/results",
+        "arn:aws:dynamodb:eu-west-1:000000000000:table/results/stream/*"
+      ]
+    }
+  ]
+}

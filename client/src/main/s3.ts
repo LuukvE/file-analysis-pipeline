@@ -9,7 +9,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { Job, Result, Status } from 'shared/types';
 import { CompleteMultipartUploadCommandOutput, S3Client } from '@aws-sdk/client-s3';
 
-import { awsBuckets, minChunkSize, privateKey, publicKey } from './settings';
+import { minChunkSize, privateKey, publicKey } from './settings';
 
 const db = new DynamoDB();
 
@@ -20,11 +20,10 @@ db.on('change:results', (result: Result) => {
 export async function upload(path: string): Promise<void> {
   const source = createReadStream(path);
   const id = `job-${crypto.randomUUID()}`;
-  const { bucket, region } = awsBuckets[0];
   const file = `file-${crypto.randomUUID()}`;
   const xz = spawn('xz', ['-c', '-z', '-9e']);
   const mime = lookup(path) || 'application/octet-stream';
-  const s3 = new S3Client({ region, useAccelerateEndpoint: true });
+  const s3 = new S3Client({ forcePathStyle: true });
 
   console.log('Incoming', path);
 
@@ -85,7 +84,7 @@ export async function upload(path: string): Promise<void> {
       const upload = new Upload({
         client: s3,
         params: {
-          Bucket: bucket,
+          Bucket: 'bucket-file-analysis-pipeline',
           Key: key,
           Body: payload.destination
         }
@@ -101,8 +100,8 @@ export async function upload(path: string): Promise<void> {
         id,
         version: app.getVersion(),
         created: new Date().toJSON(),
-        bucket,
-        region,
+        bucket: 'bucket-file-analysis-pipeline',
+        region: 'eu-west-1',
         file,
         mime,
         client: `client-${publicKey}`

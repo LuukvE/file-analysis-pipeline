@@ -19,18 +19,6 @@ export const windowOptions: BrowserWindowConstructorOptions = {
   }
 };
 
-// Test nearby regions with: https://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html?region=
-export const awsBuckets = [
-  'eu-west-1/dublin-file-analysis-pipeline-bucket'
-  // 'eu-central-1/my-frankfurt-bucket',
-  // 'eu-west-2/my-london-bucket',
-  // 'eu-west-3/my-paris-bucket'
-].map((dest) => {
-  const [region, bucket] = dest.split('/');
-
-  return { region, bucket };
-});
-
 export const minChunkSize = 30 * 1024 * 1024; // 30MB
 
 export const { publicKey, privateKey } = generate();

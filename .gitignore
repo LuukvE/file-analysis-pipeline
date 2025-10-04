@@ -10,3 +10,5 @@ jspm_packages/
 .dynamodb/
 dist
 out
+aws/data/*
+!aws/data/.gitkeep
