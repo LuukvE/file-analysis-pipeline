@@ -24,3 +24,21 @@ export type Result = {
   client: string;
   payload: string;
 };
+
+export enum MessageEvent {
+  CREATE = 'create',
+  UPDATE = 'update',
+  RECEIVE = 'receive'
+}
+
+export enum Table {
+  JOBS = 'jobs',
+  RESULTS = 'results'
+}
+
+export type Message {
+  table: Table;
+  event: MessageEvent;
+  payload: Job | Result;
+}
+
