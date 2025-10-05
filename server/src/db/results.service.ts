@@ -1,4 +1,4 @@
-import { Result } from 'shared/types';
+import { type Result } from 'shared/types';
 import { DynamoDB } from 'shared/dynamodb';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';

@@ -1,22 +1,12 @@
-// import { NestFactory } from '@nestjs/core';
-// import { WsAdapter } from '@nestjs/platform-ws';
-// import { AppModule } from './app.module';
+import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 
-// (async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
+import { AppModule } from './app.module';
 
-//   app.useWebSocketAdapter(new WsAdapter(app));
+(async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-//   await app.listen(3000);
-// })();
+  app.useWebSocketAdapter(new WsAdapter(app));
 
-import http from 'http';
-
-console.log(process.env);
-
-http
-  .createServer((_, res) => {
-    res.writeHead(200);
-    res.end('hi!');
-  })
-  .listen(parseInt(`${process.env['PORT']}`));
+  await app.listen(parseInt(`${process.env['PORT']}`));
+})();

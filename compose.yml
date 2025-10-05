@@ -3,7 +3,8 @@ services:
     build:
       context: ./aws
     environment:
-      - DEBUG=1
+      - LS_LOG=error
+      - DEBUG=0
       - ENFORCE_IAM=1
       - SERVICES=iam,s3,dynamodb
     volumes:
@@ -12,13 +13,12 @@ services:
       - ./:/monorepo
     networks:
       - bridge-network
-    ports:
-      - "4566:4566"
+    expose:
+      - "4566"
     healthcheck:
-      test:
-        [
+      test: [
           "CMD-SHELL",
-          "awslocal dynamodbstreams list-streams --table-name jobs --region eu-west-1 | jq -e '.Streams | length > 0' > /dev/null 2>&1",
+          "curl -s http://localhost:4566/_localstack/init | jq -e '.completed.READY == true'",
         ]
       interval: 5s
       timeout: 10s

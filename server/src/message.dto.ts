@@ -1,5 +1,5 @@
 import { IsEnum, IsObject } from 'class-validator';
-import { Job, Result, Table, MessageEvent } from 'shared/types';
+import { type Job, type Result, Table, MessageEvent } from 'shared/types';
 
 export class MessageDto {
   @IsEnum(Table)

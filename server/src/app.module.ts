@@ -3,10 +3,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { DbModule } from './db/db.module';
 import { AppGateway } from './app.gateway';
+import { StatusController } from './status.controller';
 
 @Module({
   imports: [EventEmitterModule.forRoot(), DbModule],
-  controllers: [],
+  controllers: [StatusController],
   providers: [AppGateway]
 })
 export class AppModule {}

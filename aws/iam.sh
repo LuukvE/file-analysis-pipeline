@@ -8,7 +8,7 @@ if [ -f "$SERVER_ENV" ]; then
 fi
 
 echo "AWS_REGION=eu-west-1" >> $SERVER_ENV
-echo "AWS_ENDPOINT_URL=http://localhost:4566" >> $SERVER_ENV
+echo "AWS_ENDPOINT_URL=http://aws:4566" >> $SERVER_ENV
 
 awslocal iam create-policy --policy-name server-policy --policy-document file:///etc/localstack/init/ready.d/policies/server-policy.json
 awslocal iam create-user --user-name server
@@ -27,7 +27,7 @@ if [ -f "$PROCESSOR_ENV" ]; then
 fi
 
 echo "AWS_REGION=eu-west-1" >> $PROCESSOR_ENV
-echo "AWS_ENDPOINT_URL=http://localhost:4566" >> $PROCESSOR_ENV
+echo "AWS_ENDPOINT_URL=http://aws:4566" >> $PROCESSOR_ENV
 
 awslocal iam create-policy --policy-name processor-policy --policy-document file:///etc/localstack/init/ready.d/policies/processor-policy.json
 awslocal iam create-user --user-name processor
