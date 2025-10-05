@@ -15,7 +15,7 @@ fi
 set -e
 
 if [ ! -f "./.env" ]; then
-  docker compose up -d setup
+  docker compose up -d setup --force-recreate
   while ! docker compose logs --no-log-prefix setup | grep -q "Ready."; do
     sleep 1
   done
@@ -25,4 +25,4 @@ fi
 
 trap "docker compose --profile dev down" SIGINT SIGTERM
 
-docker compose --profile dev up --build
+docker compose --profile dev up --build --force-recreate

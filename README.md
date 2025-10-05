@@ -1,6 +1,6 @@
 # File Analysis Pipeline
 
-__Currently under development.__ A secure, scalable pipeline for your existing data analysis engine.
+**Currently under development.** A secure, scalable pipeline for your existing data analysis engine.
 
 This is a system aimed at importing files from desktop computers, delivering them to a scalable network of processors for analysis and sending back results.
 
@@ -14,10 +14,10 @@ This is a system aimed at importing files from desktop computers, delivering the
 
 ## Architecture
 
-- 💻 __Client:__ Watch directory, Stream files, Sign up / in, Show system state, Manage organisations and users
-- 🌐 __Server:__ Create Presigned Upload URLs, Database management, Role-based authorization, SSO authentication
-- ⚙️ __Processor:__ Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
-- 🤖 __Engine:__ Perform file analysis, my example just counts file size _- Replace this with your AI_
+- 💻 **Client:** Watch directory, Stream files, Sign up / in, Show system state, Manage organisations and users
+- 🌐 **Server:** Create Presigned Upload URLs, Database management, Role-based authorization, SSO authentication
+- ⚙️ **Processor:** Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
+- 🤖 **Engine:** Perform file analysis, my example just counts file size _- Replace this with your AI_
 
 ## Reasoning
 
@@ -31,7 +31,8 @@ This is a system aimed at importing files from desktop computers, delivering the
 - Support continuous deployments of new versions of each part of the stack, including versions with breaking changes. By using multiple processors that could be written for different versions, it allows gradual upgrading.
 - Give clients control over their upgrade. Since customers might wish to run their own internal tests before adoption. This feature is especially important for critical systems managed by external customers.
 - Use Docker Compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
-- Make use of LocalStack and AWS Cloud Development Kit to make the AWS-related services _(S3, DynamoDB, IAM, ECS with Fargate)_ easily deployable and their configuration part of the projects source control.
+- Emulate AWS services using LocalStack, enabling improved testing and development with easily configurable IAM policies, DynamoDB tables and S3 buckets. This approach also allows for developer-specific mock data.
+- Use AWS Cloud Development Kit to make the AWS-related services _(S3, DynamoDB, IAM, ECS with Fargate)_ easily portable and deployable.
 
 ## Data Structure
 

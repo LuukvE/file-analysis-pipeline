@@ -23,7 +23,7 @@ export class AppGateway {
   ) {}
 
   @SubscribeMessage('message')
-  async handleMessage(client: WebSocket, data: MessageDto): Promise<void> {
+  async handleMessage(_client: WebSocket, data: MessageDto): Promise<void> {
     const { table, event, payload } = data;
 
     try {
@@ -43,16 +43,18 @@ export class AppGateway {
 
   private broadcast(message: MessageDto) {
     const payload = JSON.stringify(message);
-    this.server.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(payload);
-      }
+
+    this.server.clients.forEach((client: WebSocket) => {
+      if (client.readyState !== WebSocket.OPEN) return;
+
+      client.send(payload);
     });
   }
 
   @OnEvent(JOB_CHANGED_EVENT)
   handleJobChange(payload: Job) {
     this.logger.log('Broadcasting job change', payload);
+
     this.broadcast({
       table: Table.JOBS,
       event: MessageEvent.RECEIVE,
@@ -63,6 +65,7 @@ export class AppGateway {
   @OnEvent(RESULT_CHANGED_EVENT)
   handleResultChange(payload: Result) {
     this.logger.log('Broadcasting result change', payload);
+
     this.broadcast({
       table: Table.RESULTS,
       event: MessageEvent.RECEIVE,
