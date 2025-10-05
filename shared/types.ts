@@ -36,9 +36,8 @@ export enum Table {
   RESULTS = 'results'
 }
 
-export type Message {
+export type Message = {
   table: Table;
   event: MessageEvent;
   payload: Job | Result;
-}
-
+};

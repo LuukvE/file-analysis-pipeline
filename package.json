@@ -1,6 +1,7 @@
 {
   "name": "file-analysis-pipeline",
   "workspaces": [
+    "server",
     "processor",
     "shared"
   ]

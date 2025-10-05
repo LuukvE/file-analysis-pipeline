@@ -4,10 +4,8 @@ npm-debug.log*
 yarn.lock
 node_modules/
 jspm_packages/
-.env
+.env.local
 .env.test
 .dynamodb/
 dist
 out
-aws/data/*
-!aws/data/.gitkeep

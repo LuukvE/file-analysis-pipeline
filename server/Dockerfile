@@ -1,18 +1,16 @@
-FROM node:22-noble AS base
-WORKDIR /usr/src/app
-FROM base AS dependencies
-COPY package*.json ./
-RUN npm install
+FROM oven/bun:latest AS builder
+WORKDIR /app
+COPY package.json bun.lock ./
+COPY shared/package.json ./shared/
+COPY server/package.json ./server/
+COPY processor/package.json ./processor/
+RUN bun install --frozen-lockfile
+COPY shared/ ./shared/
+COPY server/src ./server/src
 
-FROM base AS build
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY . .
-RUN npm run build
-
-FROM base AS production
-ENV NODE_ENV=production
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=build /usr/src/app/dist ./dist
-
-CMD ["node", "dist/main"]
+FROM oven/bun:latest AS production
+WORKDIR /app
+COPY --from=builder --chown=bun:bun /app .
+WORKDIR /app/server
+USER bun
+CMD ["bun", "--hot", "run", "src"]

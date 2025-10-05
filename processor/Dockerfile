@@ -1,9 +1,10 @@
 FROM oven/bun:latest AS builder
 WORKDIR /app
 COPY package.json bun.lock ./
-COPY processor/package.json ./processor/
 COPY shared/package.json ./shared/
-RUN bun install --production
+COPY server/package.json ./server/
+COPY processor/package.json ./processor/
+RUN bun install --frozen-lockfile
 COPY shared/ ./shared/
 COPY processor/src ./processor/src
 
@@ -13,5 +14,5 @@ WORKDIR /app
 COPY --from=builder --chown=bun:bun /app .
 WORKDIR /app/processor
 USER bun
-CMD ["bun", "run", "src"]
+CMD ["bun", "--hot", "run", "src"]
 

@@ -1,49 +1,19 @@
 services:
-  setup:
-    image: localstack/localstack:latest
-    profiles:
-      - setup
-    environment:
-      - DEBUG=1
-      - PERSISTENCE=1
-      - SERVICES=iam,s3,dynamodb,ec2,ecs,logs,sts
-      - SNAPSHOT_SAVE_STRATEGY=ON_REQUEST
-    volumes:
-      - "./aws/setup:/etc/localstack/init/ready.d"
-      - "./aws/data:/var/lib/localstack"
-      - ./:/monorepo
-
-  nestjs-app:
-    build:
-      context: ./server
-    profiles:
-      - dev
-    image: nestjs-server:latest
-    networks:
-      - bridge-network
-
   aws:
     build:
       context: ./aws
-    profiles:
-      - dev
     environment:
       - DEBUG=1
-      - PERSISTENCE=1
       - ENFORCE_IAM=1
-      - SERVICES=iam,s3,dynamodb,ec2,ecs,logs,sts
-      - SNAPSHOT_LOAD_STRATEGY=ON_STARTUP
+      - SERVICES=iam,s3,dynamodb
     volumes:
-      - "./aws/dev:/etc/localstack/init/ready.d"
-      - "./aws/data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./aws:/etc/localstack/init/ready.d"
+      - ./:/monorepo
     networks:
       - bridge-network
     ports:
       - "4566:4566"
-      - "3000:3000"
-    depends_on:
-      - nestjs-app
     healthcheck:
       test:
         [
@@ -54,34 +24,45 @@ services:
       timeout: 10s
       retries: 10
 
+  server:
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    volumes:
+      - ./server/:/app/server/
+      - ./shared/:/app/shared/
+    networks:
+      - bridge-network
+    environment:
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      aws:
+        condition: service_healthy
+
+  processor:
+    build:
+      context: .
+      dockerfile: ./processor/Dockerfile
+    volumes:
+      - ./processor/:/app/processor/
+      - ./shared/:/app/shared/
+    networks:
+      - bridge-network
+    depends_on:
+      aws:
+        condition: service_healthy
+
   engine:
     build:
       context: ./engine
-    profiles:
-      - dev
     environment:
       - PYTHONUNBUFFERED=1
     networks:
       - bridge-network
     expose:
       - "8000"
-
-  processor:
-    build:
-      context: .
-      dockerfile: ./processor/Dockerfile
-    profiles:
-      - dev
-    environment:
-      - AWS_ACCESS_KEY_ID=${PROCESSOR_AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${PROCESSOR_AWS_SECRET_ACCESS_KEY:-}
-      - AWS_ENDPOINT_URL=http://aws:4566
-      - AWS_REGION=eu-west-1
-    networks:
-      - bridge-network
-    depends_on:
-      aws:
-        condition: service_healthy
 
 networks:
   bridge-network:
