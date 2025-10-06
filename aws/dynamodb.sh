@@ -1,13 +1,5 @@
 #!/bin/bash
 
-if [ -d "/var/lib/localstack/state/dynamodb" ]; then
-  rm -rf "/var/lib/localstack/state/dynamodb"
-fi
-
-if [ -d "/var/lib/localstack/state/kinesis" ]; then
-  rm -rf "/var/lib/localstack/state/kinesis"
-fi
-
 awslocal dynamodb create-table \
     --table-name jobs \
     --attribute-definitions AttributeName=id,AttributeType=S \

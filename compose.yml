@@ -9,8 +9,7 @@ services:
       - SERVICES=iam,s3,dynamodb
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./aws:/etc/localstack/init/ready.d"
-      - ./:/monorepo
+      - config:/config
     networks:
       - bridge-network
     expose:
@@ -28,16 +27,11 @@ services:
     build:
       context: .
       dockerfile: ./server/Dockerfile
-    develop:
-      watch:
-        - path: ./server
-          action: sync+restart
-          target: /app/server
-          initial_sync: true
-        - path: ./shared
-          action: sync+restart
-          target: /app/shared
-          initial_sync: true
+    command: bun --env-file=/config/.env.server --hot run src/index.ts
+    volumes:
+      - ./server/:/app/server/
+      - ./shared/:/app/shared/
+      - config:/config
     networks:
       - bridge-network
     environment:
@@ -52,9 +46,11 @@ services:
     build:
       context: .
       dockerfile: ./processor/Dockerfile
+    command: bun --env-file=/config/.env.processor --hot run src/index.ts
     volumes:
       - ./processor/:/app/processor/
       - ./shared/:/app/shared/
+      - config:/config
     networks:
       - bridge-network
     depends_on:
@@ -74,3 +70,6 @@ services:
 networks:
   bridge-network:
     driver: bridge
+
+volumes:
+  config:

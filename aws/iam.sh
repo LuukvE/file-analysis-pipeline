@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-SERVER_ENV="/monorepo/server/.env.local"
+SERVER_ENV="/config/.env.server"
 
-if [ -f "$SERVER_ENV" ]; then
-  rm $SERVER_ENV
-fi
+> $SERVER_ENV
 
 echo "AWS_REGION=eu-west-1" >> $SERVER_ENV
 echo "AWS_ENDPOINT_URL=http://aws:4566" >> $SERVER_ENV
@@ -20,11 +18,9 @@ echo "AWS_ACCESS_KEY_ID=$(echo "$SERVER_KEYS" | jq -r '.AccessKey.AccessKeyId')"
 echo "AWS_SECRET_ACCESS_KEY=$(echo "$SERVER_KEYS" | jq -r '.AccessKey.SecretAccessKey')" >> $SERVER_ENV
 
 
-PROCESSOR_ENV="/monorepo/processor/.env.local"
+PROCESSOR_ENV="/config/.env.processor"
 
-if [ -f "$PROCESSOR_ENV" ]; then
-  rm $PROCESSOR_ENV
-fi
+> $PROCESSOR_ENV
 
 echo "AWS_REGION=eu-west-1" >> $PROCESSOR_ENV
 echo "AWS_ENDPOINT_URL=http://aws:4566" >> $PROCESSOR_ENV
