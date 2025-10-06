@@ -25,6 +25,11 @@ export type Result = {
   payload: string;
 };
 
+export type Chunk = {
+  url: string;
+  chunk: number;
+};
+
 export enum MessageEvent {
   CREATE = 'create',
   UPDATE = 'update',
@@ -33,11 +38,29 @@ export enum MessageEvent {
 
 export enum Table {
   JOBS = 'jobs',
+  CHUNKS = 'chunks',
   RESULTS = 'results'
 }
 
-export type Message = {
-  table: Table;
+type JobMessage = {
+  cid: string;
+  table: Table.JOBS;
   event: MessageEvent;
-  payload: Job | Result;
+  payload: Partial<Job>;
 };
+
+type ChunkMessage = {
+  cid: string;
+  table: Table.CHUNKS;
+  event: MessageEvent;
+  payload: Partial<Chunk>;
+};
+
+type ResultMessage = {
+  cid: string;
+  table: Table.RESULTS;
+  event: MessageEvent;
+  payload: Partial<Result>;
+};
+
+export type Message = JobMessage | ResultMessage | ChunkMessage;

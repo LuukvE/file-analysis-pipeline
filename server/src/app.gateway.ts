@@ -29,7 +29,7 @@ export class AppGateway {
     try {
       if (table === Table.JOBS) {
         if (event === 'create') await this.jobs.create(payload as Job);
-        if (event === 'update') await this.jobs.update(payload as Job, '');
+        if (event === 'update') await this.jobs.update(payload as Job, '#chunks <= :chunks');
       }
 
       if (table === Table.RESULTS) {

@@ -4,5 +4,8 @@
     "server",
     "processor",
     "shared"
-  ]
+  ],
+  "scripts": {
+    "start": "docker compose up --force-recreate --build"
+  }
 }

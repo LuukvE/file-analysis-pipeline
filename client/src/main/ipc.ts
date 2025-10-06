@@ -1,7 +1,7 @@
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
 
-import { upload } from './s3';
+import upload from './upload';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
   const { canceled, filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] });
