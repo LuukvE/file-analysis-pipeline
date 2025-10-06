@@ -5,7 +5,7 @@ export class StatusController {
   constructor() {}
 
   @Get('*')
-  getStatus(): { healthy: boolean } {
-    return { healthy: true }
+  getStatus(): { healthy: boolean, test: number } {
+    return { healthy: true, test: 10 }
   }
 }

@@ -28,9 +28,16 @@ services:
     build:
       context: .
       dockerfile: ./server/Dockerfile
-    volumes:
-      - ./server/:/app/server/
-      - ./shared/:/app/shared/
+    develop:
+      watch:
+        - path: ./server
+          action: sync+restart
+          target: /app/server
+          initial_sync: true
+        - path: ./shared
+          action: sync+restart
+          target: /app/shared
+          initial_sync: true
     networks:
       - bridge-network
     environment:
