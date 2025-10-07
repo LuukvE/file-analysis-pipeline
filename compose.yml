@@ -1,32 +1,23 @@
 services:
   aws:
-    build:
-      context: ./aws
-    environment:
-      - LS_LOG=error
-      - DEBUG=0
-      - ENFORCE_IAM=1
-      - SERVICES=iam,s3,dynamodb
+    build: ./aws
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
       - config:/config
     networks:
       - bridge-network
     expose:
       - "4566"
     healthcheck:
-      test: [
-          "CMD-SHELL",
-          "curl -s http://localhost:4566/_localstack/init | jq -e '.completed.READY == true'",
-        ]
-      interval: 5s
-      timeout: 10s
-      retries: 10
+      test: ["CMD-SHELL", "curl -s http://localhost:4566/_localstack/init | jq -e '.completed.READY == true'"]
+      interval: 2s
+      retries: 100
 
   server:
     build:
       context: .
       dockerfile: ./server/Dockerfile
+    # .env files are only used for dev, and exclusively to set AWS values
+    # AWS Secret Manager is used for all secrets
     command: bun --env-file=/config/.env.server --hot run src/index.ts
     volumes:
       - ./server/:/app/server/
@@ -46,6 +37,8 @@ services:
     build:
       context: .
       dockerfile: ./processor/Dockerfile
+    # .env files are only used for dev, and exclusively to set AWS values
+    # AWS Secret Manager is used for all secrets
     command: bun --env-file=/config/.env.processor --hot run src/index.ts
     volumes:
       - ./processor/:/app/processor/
@@ -60,8 +53,6 @@ services:
   engine:
     build:
       context: ./engine
-    environment:
-      - PYTHONUNBUFFERED=1
     networks:
       - bridge-network
     expose:

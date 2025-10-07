@@ -5,6 +5,7 @@ import { Table, Chunk, type Message, type Job, type Result } from 'shared/types'
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
 import { ChunksService } from './db/chunks.service';
+import { SecretsService } from './secrets/secrets.service';
 import { JobsService, JOB_CHANGED_EVENT } from './db/jobs.service';
 import { ResultsService, RESULT_CHANGED_EVENT } from './db/results.service';
 
@@ -20,8 +21,11 @@ export class AppGateway {
   constructor(
     private jobs: JobsService,
     private chunks: ChunksService,
-    private results: ResultsService
-  ) {}
+    private results: ResultsService,
+    private secrets: SecretsService
+  ) {
+    console.log('Secret: foo =', this.secrets.get('foo'));
+  }
 
   @SubscribeMessage('message')
   async handleMessage(_client: WebSocket, data: Message): Promise<void> {

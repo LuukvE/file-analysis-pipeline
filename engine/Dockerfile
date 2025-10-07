@@ -3,6 +3,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./src ./src
-ENV PORT 8000
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
-CMD sh -c "uvicorn src.main:app --host 0.0.0.0 --port ${PORT} --timeout-keep-alive 300 --log-level warning"
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300", "--log-level", "warning"]
