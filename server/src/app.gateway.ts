@@ -1,10 +1,10 @@
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebSocket, WebSocketServer as WsServer } from 'ws';
-import { MessageEvent, Table, type Job, type Result } from 'shared/types';
+import { Table, Chunk, type Message, type Job, type Result } from 'shared/types';
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
-import { MessageDto } from './message.dto';
+import { ChunksService } from './db/chunks.service';
 import { JobsService, JOB_CHANGED_EVENT } from './db/jobs.service';
 import { ResultsService, RESULT_CHANGED_EVENT } from './db/results.service';
 
@@ -15,61 +15,55 @@ export class AppGateway {
   @WebSocketServer()
   server: WsServer;
 
-  private readonly logger = new Logger(AppGateway.name);
+  logger = new Logger(AppGateway.name);
 
   constructor(
-    private readonly jobs: JobsService,
-    private readonly results: ResultsService
+    private jobs: JobsService,
+    private chunks: ChunksService,
+    private results: ResultsService
   ) {}
 
   @SubscribeMessage('message')
-  async handleMessage(_client: WebSocket, data: MessageDto): Promise<void> {
-    const { table, event, payload } = data;
-
-    try {
-      if (table === Table.JOBS) {
-        if (event === 'create') await this.jobs.create(payload as Job);
-        if (event === 'update') await this.jobs.update(payload as Job, '#chunks <= :chunks');
-      }
-
-      if (table === Table.RESULTS) {
-        if (event === 'create') await this.results.create(payload as Result);
-        if (event === 'update') await this.results.update(payload as Result, '');
-      }
-    } catch (error) {
-      this.logger.error(`Failed to process message for entity ${table} with ${event}`, error);
-    }
-  }
-
-  private broadcast(message: MessageDto) {
-    const payload = JSON.stringify(message);
-
-    this.server.clients.forEach((client: WebSocket) => {
-      if (client.readyState !== WebSocket.OPEN) return;
-
-      client.send(payload);
-    });
+  async handleMessage(_client: WebSocket, data: Message): Promise<void> {
+    this.save(data);
   }
 
   @OnEvent(JOB_CHANGED_EVENT)
-  handleJobChange(payload: Job) {
-    this.logger.log('Broadcasting job change', payload);
-
-    this.broadcast({
-      table: Table.JOBS,
-      event: MessageEvent.RECEIVE,
-      payload
-    });
+  handleJobChange(message: Job) {
+    this.broadcast(message);
   }
 
   @OnEvent(RESULT_CHANGED_EVENT)
-  handleResultChange(payload: Result) {
-    this.logger.log('Broadcasting result change', payload);
+  handleResultChange(message: Result) {
+    this.broadcast(message);
+  }
 
-    this.broadcast({
-      table: Table.RESULTS,
-      event: MessageEvent.RECEIVE,
-      payload
+  async save(data: Message) {
+    try {
+      const { table, id } = data;
+
+      if (!id && table === Table.JOBS) return this.jobs.create(data as Job);
+
+      if (table === Table.JOBS) return this.jobs.update(data as Job, '#chunks <= :chunks');
+
+      if (!id && table === Table.CHUNKS) return this.chunks.create(data as Chunk);
+
+      if (!id && table === Table.RESULTS) await this.results.create(data as Result);
+
+      if (table === Table.RESULTS) await this.results.update(data as Result, '');
+    } catch (error) {
+      this.logger.error('Failed to process message', data, error);
+    }
+  }
+
+  private broadcast(message: Message) {
+    const payload = JSON.stringify(message);
+
+    this.server.clients.forEach((client: WebSocket) => {
+      client;
+      if (client.readyState !== WebSocket.OPEN) return;
+
+      client.send(payload);
     });
   }
 }

@@ -1,11 +1,11 @@
-import { type Result } from 'shared/types';
 import { DynamoDB } from 'shared/dynamodb';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { type Message, type Result } from 'shared/types';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { DB_PROVIDER } from './db.provider';
 
-type ResultUpdate = Partial<Result> & { id: string };
+type ResultUpdate = Partial<Result> & Message;
 
 export const RESULT_CHANGED_EVENT = 'db.result.changed';
 

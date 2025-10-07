@@ -1,11 +1,11 @@
-import { type Job } from 'shared/types';
 import { DynamoDB } from 'shared/dynamodb';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { type Message, type Job } from 'shared/types';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { DB_PROVIDER } from './db.provider';
 
-type JobUpdate = Partial<Job> & { id: string };
+type JobUpdate = Partial<Job> & Message;
 
 export const JOB_CHANGED_EVENT = 'db.job.changed';
 

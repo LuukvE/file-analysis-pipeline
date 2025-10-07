@@ -3,13 +3,21 @@ export enum Status {
   UPLOADED = 'UPLOADED'
 }
 
-export type Job = {
+export enum Table {
+  JOBS = 'jobs',
+  CHUNKS = 'chunks',
+  RESULTS = 'results'
+}
+
+export interface Message {
   id: string;
+  cid: string;
+  table: Table;
+}
+
+export interface Job extends Message {
   version: string;
   created: string;
-  bucket: string;
-  region: string;
-  file: string;
   mime: string;
   client: string;
   signature?: string;
@@ -17,50 +25,15 @@ export type Job = {
   chunks?: number;
   processor?: string;
   uploaded?: string;
-};
+}
 
-export type Result = {
-  id: string;
+export interface Result extends Message {
   client: string;
   payload: string;
-};
+}
 
-export type Chunk = {
+export interface Chunk extends Message {
+  job: string;
+  index: number;
   url: string;
-  chunk: number;
-};
-
-export enum MessageEvent {
-  CREATE = 'create',
-  UPDATE = 'update',
-  RECEIVE = 'receive'
 }
-
-export enum Table {
-  JOBS = 'jobs',
-  CHUNKS = 'chunks',
-  RESULTS = 'results'
-}
-
-type JobMessage = {
-  cid: string;
-  table: Table.JOBS;
-  event: MessageEvent;
-  payload: Partial<Job>;
-};
-
-type ChunkMessage = {
-  cid: string;
-  table: Table.CHUNKS;
-  event: MessageEvent;
-  payload: Partial<Chunk>;
-};
-
-type ResultMessage = {
-  cid: string;
-  table: Table.RESULTS;
-  event: MessageEvent;
-  payload: Partial<Result>;
-};
-
-export type Message = JobMessage | ResultMessage | ChunkMessage;

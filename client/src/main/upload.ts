@@ -1,9 +1,9 @@
 import { PassThrough } from 'stream';
-import { Chunk, Status } from 'shared/types';
+import { Chunk, Job, Status, Table } from 'shared/types';
 import { spawn } from 'child_process';
 import { createReadStream } from 'fs';
 
-import { createChunk, createJob, updateJob } from './ws';
+import { createJob, send } from './ws';
 import { minChunkSize } from './settings';
 
 type Update = { index: number; done: boolean };
@@ -32,7 +32,9 @@ export default async function (path: string): Promise<void> {
   const source = createReadStream(path);
   const xz = spawn('xz', ['-c', '-z', '-9e']);
 
-  queues.chunks.push(createChunk(0));
+  console.log(1, 'creating job');
+
+  createJob(path).then(getFirstChunk);
 
   console.log('incoming', path);
 
@@ -43,6 +45,25 @@ export default async function (path: string): Promise<void> {
 
   source.on('error', (err) => kill(`Read Error: ${err.message}`));
   source.pipe(xz.stdin);
+
+  function getFirstChunk(job: Job) {
+    console.log(2, 'job created', job);
+
+    tracker.job = job.id;
+
+    const chunk: Chunk = {
+      id: '',
+      cid: crypto.randomUUID(),
+      table: Table.CHUNKS,
+      job: job.id,
+      index: 0,
+      url: ''
+    };
+
+    console.log(3, 'creating chunk', job);
+
+    queues.chunks.push(send<Chunk>(chunk));
+  }
 
   function kill(err: string) {
     console.error(err);
@@ -69,7 +90,16 @@ export default async function (path: string): Promise<void> {
 
     tracker.destination = new PassThrough();
 
-    queues.chunks.push(createChunk(tracker.index));
+    queues.chunks.push(
+      send<Chunk>({
+        id: '',
+        cid: crypto.randomUUID(),
+        table: Table.CHUNKS,
+        index: tracker.index,
+        job: tracker.job,
+        url: ''
+      })
+    );
   }
 
   async function finish(code: number) {
@@ -101,16 +131,13 @@ export default async function (path: string): Promise<void> {
     if (looping) return;
 
     return (async function loop({ done, index }) {
-      const update =
-        index === 0
-          ? createJob(path)
-          : updateJob({
-              id: tracker.job,
-              chunks: index + 1,
-              status: done ? Status.UPLOADED : Status.UPLOADING
-            });
-
-      console.log('updated job', update);
+      send<Job>({
+        id: tracker.job,
+        cid: crypto.randomUUID(),
+        table: Table.JOBS,
+        chunks: index + 1,
+        status: done ? Status.UPLOADED : Status.UPLOADING
+      });
 
       queues.updates.shift();
 

@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { lookup } from 'mime-types';
 import WebSocket, { type Data } from 'ws';
-import { MessageEvent, Table, type Chunk, type Job, type Message } from 'shared/types';
+import { Table, type Job, type Message } from 'shared/types';
 
 import { publicKey } from './settings';
 
@@ -19,49 +19,33 @@ ws.on('message', (data: Data) => {
 
 ws.on('error', (error: Error) => console.error(error));
 
-export async function createChunk(n: number) {
-  const payload: Partial<Chunk> = { chunk: n };
-  const message = await send({ event: MessageEvent.CREATE, table: Table.CHUNKS, payload });
-
-  return message.payload as Chunk;
-}
-
-export async function updateJob(payload: Partial<Job>) {
-  const message = await send({ event: MessageEvent.UPDATE, table: Table.JOBS, payload });
-
-  return message.payload as Job;
-}
-
 export async function createJob(path: string): Promise<Job> {
   const mime = lookup(path) || 'application/octet-stream';
 
-  const payload: Job = {
+  const job: Job = {
     id: '',
+    cid: crypto.randomUUID(),
+    table: Table.JOBS,
     version: app.getVersion(),
-    created: new Date().toJSON(),
-    bucket: 'bucket-file-analysis-pipeline',
-    region: 'eu-west-1',
-    file: '',
     mime,
-    client: `client-${publicKey}`
+    client: `client-${publicKey}`,
+    created: new Date().toJSON()
   };
 
-  const message = await send({ event: MessageEvent.CREATE, table: Table.JOBS, payload });
-
-  return message.payload as Job;
+  return send<Job>(job);
 }
 
-async function send(message: Partial<Message>): Promise<Message> {
+export async function send<T extends Message>(msg: Partial<T> & Message): Promise<T> {
   if (ws.readyState !== WebSocket.OPEN) {
     console.error('Socket not open', ws.readyState);
 
-    return new Promise((cb) => setTimeout(() => cb(send(message)), 1000));
+    return new Promise((cb) => setTimeout(() => cb(send(msg)), 1000));
   }
 
   const cid = crypto.randomUUID();
 
-  const promise = new Promise<Message>((cb) => {
-    ws.on('incoming', function listener(message: Message) {
+  const promise = new Promise<T>((cb) => {
+    ws.on('incoming', function listener(message: T) {
       if (message?.cid !== cid) return;
 
       ws.off('incoming', listener);
@@ -70,12 +54,7 @@ async function send(message: Partial<Message>): Promise<Message> {
     });
   });
 
-  ws.send(
-    JSON.stringify({
-      message,
-      cid
-    })
-  );
+  ws.send(JSON.stringify(msg));
 
   return promise;
 }
