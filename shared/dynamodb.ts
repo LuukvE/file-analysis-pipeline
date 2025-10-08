@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { Message } from 'shared/types';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { DescribeTableCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
@@ -206,14 +207,7 @@ export class DynamoDB extends EventEmitter {
       },
       { expressions: [], names: {}, values: {} }
     );
-    console.log({
-      TableName: table,
-      Key: { id: item.id },
-      UpdateExpression: `SET ${memo.expressions.join(', ')}`,
-      ConditionExpression: condition,
-      ExpressionAttributeNames: memo.names,
-      ExpressionAttributeValues: memo.values
-    });
+
     const command = new UpdateCommand({
       TableName: table,
       Key: { id: item.id },
@@ -226,8 +220,8 @@ export class DynamoDB extends EventEmitter {
     return this.documentClient.send(command);
   }
 
-  create<T extends { id: string } = any>(item: T, table: string) {
-    const command = new PutCommand({ TableName: table, Item: item });
+  create<T extends Message = any>(Item: T, TableName: string) {
+    const command = new PutCommand({ TableName, Item });
 
     return this.documentClient.send(command);
   }

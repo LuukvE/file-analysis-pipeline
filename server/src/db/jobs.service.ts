@@ -25,6 +25,9 @@ export class JobsService implements OnModuleInit {
   }
 
   async create(job: Job) {
+    job.id = `job-${crypto.randomUUID()}`;
+    job.chunks = job.chunks || 0;
+
     return this.db.create<Job>(job, this.table);
   }
 

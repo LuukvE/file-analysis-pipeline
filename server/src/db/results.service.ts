@@ -20,11 +20,15 @@ export class ResultsService implements OnModuleInit {
 
   onModuleInit() {
     this.db.on('change:results', (result: Result) => {
+      console.log('received result', result);
+
       this.events.emit(RESULT_CHANGED_EVENT, result);
     });
   }
 
   async create(result: Result) {
+    result.id = `result-${crypto.randomUUID()}`;
+
     return this.db.create<Result>(result, this.table);
   }
 

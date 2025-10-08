@@ -7,7 +7,7 @@ import { StatusController } from './status.controller';
 import { SecretsModule } from './secrets/secrets.module';
 
 @Module({
-  imports: [EventEmitterModule.forRoot(), DbModule, SecretsModule],
+  imports: [EventEmitterModule.forRoot({ global: true }), DbModule, SecretsModule],
   controllers: [StatusController],
   providers: [AppGateway]
 })
