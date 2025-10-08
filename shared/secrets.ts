@@ -12,7 +12,7 @@ export async function getSecrets(
 
     if (response.SecretString) return JSON.parse(response.SecretString);
   } catch (error) {
-    // Do not log the error, it might reveal secrets we can't put in the log
+    // Do not log the error, it might log secrets
     console.log('AWS Secrets error', SecretId, region);
   }
 }
