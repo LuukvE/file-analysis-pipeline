@@ -1,13 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Chunk, Table, type Job, type Message, type Result } from 'shared/types';
 import { WebSocket, WebSocketServer as WsServer } from 'ws';
-import { Table, Chunk, type Message, type Job, type Result } from 'shared/types';
-import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
-import { ChunksService } from './db/chunks.service';
-import { SecretsService } from './secrets/secrets.service';
-import { JobsService, JOB_CHANGED_EVENT } from './db/jobs.service';
-import { ResultsService, RESULT_CHANGED_EVENT } from './db/results.service';
+import { JOB_CHANGED_EVENT, JobsService } from './db/jobs.service';
+import { CHUNK_CHANGED_EVENT, ChunksService } from './db/chunks.service';
+import { RESULT_CHANGED_EVENT, ResultsService } from './db/results.service';
 
 @WebSocketGateway({
   cors: { origin: '*' }
@@ -21,53 +20,51 @@ export class AppGateway {
   constructor(
     private jobs: JobsService,
     private chunks: ChunksService,
-    private results: ResultsService,
-    private secrets: SecretsService
-  ) {
-    console.log('Secret: foo =', this.secrets.get('foo'));
-  }
-
-  @SubscribeMessage('message')
-  async handleMessage(_client: WebSocket, data: Message): Promise<void> {
-    this.save(data);
-  }
+    private results: ResultsService
+  ) {}
 
   @OnEvent(JOB_CHANGED_EVENT)
-  handleJobChange(message: Job) {
-    this.broadcast(message);
-  }
-
+  @OnEvent(CHUNK_CHANGED_EVENT)
   @OnEvent(RESULT_CHANGED_EVENT)
-  handleResultChange(message: Result) {
-    this.broadcast(message);
-  }
+  broadcast(message: Message) {
+    console.log('broadcasting', message.id);
 
-  async save(data: Message) {
-    try {
-      const { table, id } = data;
-
-      if (!id && table === Table.JOBS) return this.jobs.create(data as Job);
-
-      if (table === Table.JOBS) return this.jobs.update(data as Job, '#chunks <= :chunks');
-
-      if (!id && table === Table.CHUNKS) return this.chunks.create(data as Chunk);
-
-      if (!id && table === Table.RESULTS) await this.results.create(data as Result);
-
-      if (table === Table.RESULTS) await this.results.update(data as Result, '');
-    } catch (error) {
-      this.logger.error('Failed to process message', data, error);
-    }
-  }
-
-  private broadcast(message: Message) {
     const payload = JSON.stringify(message);
 
     this.server.clients.forEach((client: WebSocket) => {
-      client;
       if (client.readyState !== WebSocket.OPEN) return;
 
+      console.log('sending', payload);
+
       client.send(payload);
+    });
+  }
+
+  handleConnection(client: WebSocket) {
+    this.logger.log(`Client connected`);
+
+    client.on('message', (data, binary) => {
+      if (binary) return this.logger.log('Client sent binary data');
+
+      try {
+        const msg: Message = JSON.parse(data.toString());
+        const { table, id } = msg;
+
+        console.log('receiving', table, id);
+
+        if (!id && table === Table.JOBS) return this.jobs.create(msg as Job);
+
+        if (table === Table.JOBS) return this.jobs.update(msg as Job, '#chunks <= :chunks');
+
+        if (!id && table === Table.CHUNKS) return this.chunks.create(msg as Chunk);
+
+        if (!id && table === Table.RESULTS) return this.results.create(msg as Result);
+
+        if (table === Table.RESULTS) return this.results.update(msg as Result, '');
+      } catch (error) {
+        console.log('error', error);
+        this.logger.error('Failed to process message', data, error);
+      }
     });
   }
 }

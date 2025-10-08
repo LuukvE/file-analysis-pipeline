@@ -6,6 +6,9 @@ import { Readable, Writable } from 'stream';
 import { IncomingMessage, request } from 'http';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
+const REGION = process.env['AWS_REGION'];
+const BUCKET = process.env['AWS_BUCKET'];
+
 const loader = new EventEmitter<{
   incoming: [job: Job];
   loaded: [job: Job];
@@ -35,17 +38,17 @@ async function onIncoming(job: Job) {
 
   memory.job = job;
 
-  memory.s3[job.region] = memory.s3[job.region] || new S3Client({ forcePathStyle: true });
+  memory.s3[REGION] = memory.s3[REGION] || new S3Client({ forcePathStyle: true });
 
   if (!job.chunks) return;
   console.log('ready to download #chunks', job.chunks);
   for (let i = 0; i < job.chunks; i++) {
     if (memory.chunks[i]) continue;
 
-    const input = { Bucket: job.bucket, Key: `${job.file}-${i}` };
+    const input = { Bucket: BUCKET, Key: `${job.id}-${i}` };
 
     memory.chunks[i] = (async () => {
-      const output = await memory.s3[job.region].send(new GetObjectCommand(input));
+      const output = await memory.s3[REGION].send(new GetObjectCommand(input));
 
       if (!(output.Body instanceof Readable)) throw `Invalid S3 file, index ${i}`;
 

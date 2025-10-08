@@ -9,6 +9,8 @@ echo "AWS_REGION=eu-west-1" >> $SERVER_ENV
 
 echo "AWS_ENDPOINT_URL=http://aws:4566" >> $SERVER_ENV
 
+echo "AWS_BUCKET=bucket-file-analysis-pipeline" >> $SERVER_ENV
+
 
 awslocal iam create-policy \
     --policy-name server-policy \
@@ -37,6 +39,8 @@ PROCESSOR_ENV="/config/.env.processor"
 echo "AWS_REGION=eu-west-1" >> $PROCESSOR_ENV
 
 echo "AWS_ENDPOINT_URL=http://aws:4566" >> $PROCESSOR_ENV
+
+echo "AWS_BUCKET=bucket-file-analysis-pipeline" >> $PROCESSOR_ENV
 
 awslocal iam create-policy \
     --policy-name processor-policy \

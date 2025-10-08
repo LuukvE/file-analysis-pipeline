@@ -1,4 +1,4 @@
-import { Job, Result } from 'shared/types';
+import { Job, Result, Table } from 'shared/types';
 import loader, { memory } from './loader';
 import { DynamoDB } from 'shared/dynamodb';
 import { encrypt } from 'shared/crypto';
@@ -26,6 +26,8 @@ function onChange(job: Job) {
 async function onProcessed(job: Job, payload: string) {
   const result: Result = {
     id: `result-${crypto.randomUUID()}`,
+    cid: crypto.randomUUID(),
+    table: Table.RESULTS,
     client: job.client,
     payload: encrypt(job.client.substring(7), payload)
   };
