@@ -1,14 +1,15 @@
+import { request } from 'http';
 import { PassThrough } from 'stream';
-import { Chunk, Job, Status, Table } from 'shared/types';
 import { spawn } from 'child_process';
 import { createReadStream } from 'fs';
+import { Chunk, Job, Status, Table } from 'shared/types';
 
-import { createJob, send } from './ws';
+import { Socket } from './socket';
 import { minChunkSize } from './settings';
 
 type Update = { index: number; done: boolean };
 
-export default async function (path: string): Promise<void> {
+export default async function (path: string, job: Job, socket: Socket) {
   const queues: {
     chunks: Promise<Chunk>[];
     updates: Update[];
@@ -18,12 +19,11 @@ export default async function (path: string): Promise<void> {
   };
 
   const tracker: {
-    job: string;
     size: number;
     index: number;
     destination: PassThrough;
+    uploaded?: (v: null) => void;
   } = {
-    job: '',
     size: 0,
     index: 0,
     destination: new PassThrough()
@@ -32,24 +32,19 @@ export default async function (path: string): Promise<void> {
   const source = createReadStream(path);
   const xz = spawn('xz', ['-c', '-z', '-9e']);
 
-  console.log(1, 'creating job');
-
-  createJob(path).then(getFirstChunk);
-
-  console.log('incoming', path);
-
   xz.on('close', finish);
   xz.stdout.on('data', onData);
   xz.on('error', (err) => kill(`xz Error: ${err.message}`));
   xz.stderr.on('data', (data: Buffer) => console.error(`[xz stderr]: ${data.toString()}`));
 
   source.on('error', (err) => kill(`Read Error: ${err.message}`));
-  source.pipe(xz.stdin);
 
-  function getFirstChunk(job: Job) {
-    console.log(2, 'job created', job);
+  queues.chunks.push(getFirstChunk());
 
-    tracker.job = job.id;
+  return new Promise<null>((uploaded) => (tracker.uploaded = uploaded));
+
+  async function getFirstChunk() {
+    source.pipe(xz.stdin);
 
     const chunk: Chunk = {
       id: '',
@@ -60,9 +55,7 @@ export default async function (path: string): Promise<void> {
       url: ''
     };
 
-    console.log(3, 'creating chunk', job);
-
-    queues.chunks.push(send<Chunk>(chunk));
+    return socket.send<Chunk>(chunk);
   }
 
   function kill(err: string) {
@@ -91,12 +84,12 @@ export default async function (path: string): Promise<void> {
     tracker.destination = new PassThrough();
 
     queues.chunks.push(
-      send<Chunk>({
+      socket.send<Chunk>({
         id: '',
         cid: crypto.randomUUID(),
         table: Table.CHUNKS,
         index: tracker.index,
-        job: tracker.job,
+        job: job.id,
         url: ''
       })
     );
@@ -115,12 +108,16 @@ export default async function (path: string): Promise<void> {
 
     const chunk = await queues.chunks[index];
 
-    console.log('uploading', index, 'to', chunk.url, 'final?', done);
+    const options = {
+      method: 'PUT',
+      headers: { 'Content-Type': job.mime }
+    };
 
-    // TODO
-    await new Promise((cb) => setTimeout(cb, 5000));
+    const req = request(chunk.url, options, () => addUpdate({ done, index }));
 
-    addUpdate({ done, index });
+    req.on('error', (e) => console.error('Upload error', e));
+
+    destination.pipe(req);
   }
 
   async function addUpdate({ done, index }: { done: boolean; index: number }) {
@@ -131,8 +128,8 @@ export default async function (path: string): Promise<void> {
     if (looping) return;
 
     return (async function loop({ done, index }) {
-      send<Job>({
-        id: tracker.job,
+      await socket.send<Job>({
+        id: job.id,
         cid: crypto.randomUUID(),
         table: Table.JOBS,
         chunks: index + 1,
@@ -141,7 +138,9 @@ export default async function (path: string): Promise<void> {
 
       queues.updates.shift();
 
-      if (queues.updates.length) loop(queues.updates[0]);
+      if (queues.updates.length) return loop(queues.updates[0]);
+
+      if (done) tracker.uploaded?.(null);
     })({ done, index });
   }
 }
