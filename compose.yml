@@ -18,7 +18,7 @@ services:
       dockerfile: ./server/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
     # AWS Secret Manager is used for all secrets
-    command: bun --env-file=/config/.env.server --hot run src/index.ts
+    command: bun --env-file=/config/.env.server --watch run src/index.ts
     volumes:
       - ./server/:/app/server/
       - ./shared/:/app/shared/
@@ -39,7 +39,7 @@ services:
       dockerfile: ./processor/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
     # AWS Secret Manager is used for all secrets
-    command: bun --env-file=/config/.env.processor --hot run src/index.ts
+    command: bun --env-file=/config/.env.processor --watch run src/index.ts
     volumes:
       - ./processor/:/app/processor/
       - ./shared/:/app/shared/
