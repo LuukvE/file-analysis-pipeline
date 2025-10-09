@@ -1,25 +1,24 @@
-// TODO: Presigned URLs and NestJS server instead of direct AWS SDK
-process.env['AWS_REGION'] = 'eu-west-1';
-process.env['AWS_ENDPOINT_URL'] = 'http://127.0.0.1:4566';
-
-// These values are fake - for localstack emulator
-process.env['AWS_ACCESS_KEY_ID'] = 'LKIAQAAAAAAAN3S73MPM';
-process.env['AWS_SECRET_ACCESS_KEY'] = 'l4hJ5Uvcf0UaFOJtrFp2Bj8OAAhq444LPeLt6Dyi';
-
+import path, { join } from 'path';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
-import { join } from 'path';
+import { app, BrowserWindow, ipcMain, protocol, shell } from 'electron';
 
 import { onDialog, onFrame, onWatch } from './ipc';
 import { rendererUrl, windowOptions } from './settings';
+import EventEmitter from 'events';
 
-electronApp.setAppUserModelId('com.electron');
+const emitter = new EventEmitter();
+
+emitter.on('signin', onNotReady);
 
 ipcMain.handle('frame', onFrame);
 
 ipcMain.handle('watch', onWatch);
 
 ipcMain.handle('dialog', onDialog);
+
+electronApp.setAppUserModelId('com.file-analysis-pipeline');
+
+initScheme();
 
 app.whenReady().then(onReady);
 
@@ -29,8 +28,22 @@ app.on('activate', () => !BrowserWindow.getAllWindows().length && onReady());
 
 app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w));
 
+function onNotReady(token: string) {
+  setTimeout(emitter.emit, 1000, 'signin', token);
+}
+
 function onReady() {
   const win = new BrowserWindow(windowOptions);
+
+  emitter.on('signin', (token: string) => {
+    win.focus();
+
+    console.log('token', token);
+
+    win.webContents.send('token', token);
+  });
+
+  emitter.off('signin', onNotReady);
 
   win.on('ready-to-show', win.show);
 
@@ -40,8 +53,46 @@ function onReady() {
     return { action: 'deny' };
   });
 
-  if (is.dev && rendererUrl) win.loadURL(rendererUrl);
-  else win.loadFile(join(__dirname, '../renderer/index.html'));
+  if (is.dev && rendererUrl) return win.loadURL(rendererUrl);
 
-  return win;
+  win.loadFile(join(__dirname, '../renderer/index.html'));
+}
+
+function initScheme() {
+  const scheme = 'file-analysis-pipeline';
+  const lock = app.requestSingleInstanceLock();
+
+  if (!lock) return app.quit();
+
+  protocol.registerSchemesAsPrivileged([{ scheme, privileges: { standard: true, secure: true } }]);
+
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+
+    parseUrl(url);
+  });
+
+  app.on('second-instance', (_, commandLine) =>
+    parseUrl(commandLine.find((arg) => arg.startsWith(scheme)))
+  );
+
+  parseUrl(process.argv.find((arg) => arg.startsWith(scheme)));
+
+  if (process.defaultApp) {
+    if (process.argv.length < 2) return;
+
+    return app.setAsDefaultProtocolClient(scheme, process.execPath, [
+      path.resolve(process.argv[1])
+    ]);
+  }
+
+  app.setAsDefaultProtocolClient(scheme); // prod
+}
+
+function parseUrl(url?: string) {
+  if (!url) return;
+
+  const token = new URL(url).searchParams.get('token');
+
+  emitter.emit('signin', token);
 }

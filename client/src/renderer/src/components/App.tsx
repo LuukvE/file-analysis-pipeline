@@ -1,13 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const { invoke } = window.electron.ipcRenderer;
 
-const watchedFolder = localStorage.getItem('watchedFolder') || '';
-
-if (watchedFolder) invoke('watch', watchedFolder);
-
 export default () => {
-  const [path, setPath] = useState(watchedFolder);
+  const [token, setToken] = useState('');
+  const [path, setPath] = useState('');
+
+  useEffect(() => {
+    const watchedFolder = localStorage.getItem('watchedFolder') || '';
+
+    if (watchedFolder) invoke('watch', watchedFolder);
+
+    setPath(watchedFolder);
+
+    const interval = setInterval(() => {
+      const stored = localStorage.getItem('token') || '';
+
+      setToken((prev) => (stored !== prev ? stored : prev));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [setToken]);
 
   return (
     <>
@@ -25,24 +38,38 @@ export default () => {
       )}
 
       <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
-        <a
-          className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-          target="_blank"
-          rel="noreferrer"
-          onClick={async (e) => {
-            e.preventDefault();
+        {!!token && (
+          <a
+            className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+            target="_blank"
+            rel="noreferrer"
+            onClick={async (e) => {
+              e.preventDefault();
 
-            const path = await invoke('dialog');
+              const path = await invoke('dialog');
 
-            localStorage.setItem('watchedFolder', path || '');
+              localStorage.setItem('watchedFolder', path || '');
 
-            await invoke('watch', path);
+              await invoke('watch', path);
 
-            setPath(path);
-          }}
-        >
-          Select Folder
-        </a>
+              setPath(path);
+            }}
+          >
+            Select Folder
+          </a>
+        )}
+
+        {!token && (
+          <a
+            className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+            target="_blank"
+            rel="noreferrer"
+            href="http://localhost:8080/v1/google/init"
+          >
+            Sign in
+          </a>
+        )}
+
         <a
           className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
           target="_blank"
