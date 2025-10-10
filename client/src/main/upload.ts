@@ -33,9 +33,10 @@ export default async function (path: string, job: Job, socket: Socket) {
   const xz = spawn('xz', ['-c', '-z', '-9e']);
 
   xz.on('close', finish);
-  xz.stdout.on('data', onData);
   xz.on('error', (err) => kill(`xz Error: ${err.message}`));
-  xz.stderr.on('data', (data: Buffer) => console.error(`[xz stderr]: ${data.toString()}`));
+
+  xz.stdout.on('data', onData);
+  xz.stderr.on('data', (data: Buffer) => console.error('xz err', data.toString()));
 
   source.on('error', (err) => kill(`Read Error: ${err.message}`));
 

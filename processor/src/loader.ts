@@ -71,7 +71,9 @@ async function onIncoming(job: Job) {
 
 async function reconstruct(chunk: number) {
   console.log('reconstructing', chunk, memory.job.status, memory.chunks.length);
-  if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) return finish();
+  if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) {
+    return finish();
+  }
 
   if (!memory.chunks[chunk]) return loader.once('incoming', () => reconstruct(chunk));
 

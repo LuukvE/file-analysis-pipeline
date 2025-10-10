@@ -8,7 +8,9 @@ import { Socket } from './socket';
 import { publicKey } from './settings';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
-  const { canceled, filePaths } = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  });
 
   if (canceled || !filePaths.length) return;
 

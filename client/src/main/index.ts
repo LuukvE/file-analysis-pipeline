@@ -64,7 +64,9 @@ function initScheme() {
 
   if (!lock) return app.quit();
 
-  protocol.registerSchemesAsPrivileged([{ scheme, privileges: { standard: true, secure: true } }]);
+  protocol.registerSchemesAsPrivileged([
+    { scheme, privileges: { standard: true, secure: true } }
+  ]);
 
   app.on('open-url', (event, url) => {
     event.preventDefault();
@@ -72,14 +74,16 @@ function initScheme() {
     parseUrl(url);
   });
 
-  app.on('second-instance', (_, commandLine) =>
-    parseUrl(commandLine.find((arg) => arg.startsWith(scheme)))
-  );
+  app.on('second-instance', (_, commandLine) => {
+    parseUrl(commandLine.find((arg) => arg.startsWith(scheme)));
+  });
 
   parseUrl(process.argv.find((arg) => arg.startsWith(scheme)));
 
   if (process.defaultApp) {
     if (process.argv.length < 2) return;
+
+    console.log(33, process.execPath);
 
     return app.setAsDefaultProtocolClient(scheme, process.execPath, [
       path.resolve(process.argv[1])

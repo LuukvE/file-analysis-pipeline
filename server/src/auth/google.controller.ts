@@ -53,7 +53,7 @@ export class GoogleController {
     );
 
     if (googleRequest.status >= 300) {
-      console.log('Google user info error', googleRequest.status, await googleRequest.text());
+      console.log('Google error', await googleRequest.text());
 
       return {
         url: `file-analysis-pipeline://error`,
@@ -63,15 +63,14 @@ export class GoogleController {
 
     const result: { id: string; email: string } = await googleRequest.json();
 
-    const payload = {
-      sub: result.id,
-      email: `${result.email}`.toLowerCase()
-    };
-
+    const payload = { sub: result.id, email: `${result.email}`.toLowerCase() };
     const token = jwt.sign(payload, this.secrets.get('JWT_SECRET'));
+    const url = `file-analysis-pipeline://success?token=${token}`;
+
+    console.log('open', url);
 
     return {
-      url: `file-analysis-pipeline://success?token=${token}`,
+      url,
       statusCode: 302
     };
   }
