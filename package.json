@@ -11,6 +11,6 @@
     "processor": "docker compose up processor --force-recreate --build",
     "engine": "docker compose up engine --force-recreate --build",
     "monitor": "docker compose up monitor --force-recreate --build",
-    "client": "cd client && bun run dev"
+    "client": "cd client && bun install --frozen-lockfile && bun run dev"
   }
 }

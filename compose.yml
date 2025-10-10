@@ -19,8 +19,10 @@ services:
       context: .
       dockerfile: ./monitor/Dockerfile
     ports:
-      - "8081:8081"
+      - "3000:3000"
       - "9090:9090"
+    volumes:
+      - ./monitor/data:/var/lib/grafana
     networks:
       - bridge-network
 

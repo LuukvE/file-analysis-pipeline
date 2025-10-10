@@ -1,11 +1,10 @@
 FROM oven/bun:latest AS builder
 WORKDIR /app
 COPY package.json bun.lock ./
-COPY shared/package.json ./shared/
+COPY shared/ ./shared/
 COPY server/package.json ./server/
 COPY processor/package.json ./processor/
 RUN bun install --frozen-lockfile
-COPY shared/ ./shared/
 COPY processor/src ./processor/src
 
 FROM oven/bun:latest AS production

@@ -6,16 +6,18 @@ USER root
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends prometheus && \
-    chown -R prometheus:prometheus /var/lib/prometheus && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 9090
+COPY monitor/run.sh /usr/local/bin/run-monitor.sh
+RUN chmod +x /usr/local/bin/run-monitor.sh
 
-USER prometheus
+COPY monitor/grafana.yml /etc/grafana/provisioning/datasources/prometheus.yml
+COPY monitor/prometheus.yml /etc/prometheus/prometheus.yml
+COPY monitor/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
+COPY monitor/dashboard.json /etc/grafana/provisioning/dashboards/dashboard.json
+COPY monitor/grafana.ini /etc/grafana/grafana.ini
 
-ENTRYPOINT [""]
+EXPOSE 3000 9090
 
-CMD [ "/usr/bin/prometheus", \
-    "--config.file=/etc/prometheus/prometheus.yml", \
-    "--storage.tsdb.path=/var/lib/prometheus" ]
+ENTRYPOINT ["/usr/local/bin/run-monitor.sh"]

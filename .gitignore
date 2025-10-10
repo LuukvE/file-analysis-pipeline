@@ -12,3 +12,5 @@ dist
 out
 secrets.server.json
 secrets.processor.json
+monitor/data
+
