@@ -11,6 +11,7 @@
     "server": "docker compose up server --force-recreate --build",
     "processor": "docker compose up processor --force-recreate --build",
     "engine": "docker compose up engine --force-recreate --build",
+    "monitor": "docker compose up monitor --force-recreate --build",
     "client": "cd client && bun run dev"
   }
 }

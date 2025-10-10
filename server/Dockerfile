@@ -13,4 +13,4 @@ WORKDIR /app
 COPY --from=builder --chown=bun:bun /app .
 WORKDIR /app/server
 USER bun
-CMD ["bun", "run", "src"]
+CMD ["bun", "--hot", "run", "src"]

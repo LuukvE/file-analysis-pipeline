@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { WebSocket, WebSocketServer as WsServer } from 'ws';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Chunk, Table, type Job, type Message, type Result } from 'shared/types';
-import { WebSocket, WebSocketServer as WsServer } from 'ws';
 
 import { JOB_CHANGED_EVENT, JobsService } from './db/jobs.service';
 import { CHUNK_CHANGED_EVENT, ChunksService } from './db/chunks.service';
