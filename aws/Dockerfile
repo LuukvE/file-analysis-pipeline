@@ -1,8 +1,8 @@
 FROM localstack/localstack:latest
 RUN apt-get install -y jq
-COPY ./ /etc/localstack/init/ready.d/
-COPY ../secrets.server.json /etc/localstack/init/ready.d/secrets.server.json
-COPY ../secrets.processor.json /etc/localstack/init/ready.d/secrets.processor.json
+COPY aws/ /etc/localstack/init/ready.d/
+COPY secrets.server.json /etc/localstack/init/ready.d/secrets.server.json
+COPY secrets.processor.json /etc/localstack/init/ready.d/secrets.processor.json
 ENV DEBUG=0
 ENV ENFORCE_IAM=1
 ENV LS_LOG=error

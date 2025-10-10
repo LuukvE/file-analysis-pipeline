@@ -1,0 +1,104 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "start",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "aws",
+        "start-services"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "start-services",
+      "dependsOn": [
+        "server",
+        "processor",
+        "engine",
+        "monitor",
+        "client"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "aws",
+      "type": "shell",
+      "command": "bun run aws",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Ready\\."
+        }
+      }
+    },
+    {
+      "label": "server",
+      "type": "shell",
+      "command": "bun run server",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "processor",
+      "type": "shell",
+      "command": "bun run processor",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "engine",
+      "type": "shell",
+      "command": "bun run engine",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "monitor",
+      "type": "shell",
+      "command": "bun run monitor",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "client",
+      "type": "shell",
+      "command": "bun run client",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

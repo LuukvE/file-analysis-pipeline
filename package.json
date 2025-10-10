@@ -6,7 +6,6 @@
     "shared"
   ],
   "scripts": {
-    "start": "docker compose up --force-recreate --build",
     "aws": "docker compose up aws --force-recreate --build",
     "server": "docker compose up server --force-recreate --build",
     "processor": "docker compose up processor --force-recreate --build",

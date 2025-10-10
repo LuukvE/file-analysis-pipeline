@@ -10,9 +10,12 @@ export class MetricsMiddleware implements NestMiddleware {
     const startTime = process.hrtime();
 
     res.on('finish', () => {
+      const route = req.route ? req.route.path : req.originalUrl;
+      
+      if (route === '/metrics') return;
+
       const diff = process.hrtime(startTime);
       const durationInSeconds = diff[0] + diff[1] / 1e9;
-      const route = req.route ? req.route.path : req.originalUrl;
       const method = req.method;
       const statusCode = res.statusCode;
 

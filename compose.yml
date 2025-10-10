@@ -1,6 +1,8 @@
 services:
   aws:
-    build: ./aws
+    build:
+      context: .
+      dockerfile: ./aws/Dockerfile
     volumes:
       - config:/config
     networks:
@@ -18,14 +20,9 @@ services:
       dockerfile: ./monitor/Dockerfile
     ports:
       - "8081:8081"
-      - "8082:8082"
+      - "9090:9090"
     networks:
       - bridge-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ./monitor/grafana/provisioning:/etc/grafana/provisioning
-      - grafana-storage:/var/lib/grafana
 
   server:
     build:
