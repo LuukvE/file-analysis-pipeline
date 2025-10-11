@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebSocket, WebSocketServer as WsServer } from 'ws';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
@@ -15,8 +14,6 @@ export class AppGateway {
   @WebSocketServer()
   server: WsServer;
 
-  logger = new Logger(AppGateway.name);
-
   constructor(
     private jobs: JobsService,
     private chunks: ChunksService,
@@ -29,6 +26,8 @@ export class AppGateway {
   broadcast(message: Message) {
     const payload = JSON.stringify(message);
 
+    console.log('broadcast', message);
+
     this.server.clients.forEach((client: WebSocket) => {
       if (client.readyState !== WebSocket.OPEN) return;
 
@@ -37,26 +36,28 @@ export class AppGateway {
   }
 
   handleConnection(client: WebSocket) {
-    this.logger.log(`Client connected`);
+    const { jobs, results, chunks } = this;
+
+    console.log('listening for messages');
 
     client.on('message', (data, binary) => {
-      if (binary) return this.logger.log('Client sent binary data');
+      if (binary) return;
 
       try {
         const msg: Message = JSON.parse(data.toString());
         const { table, id } = msg;
 
-        if (!id && table === Table.JOBS) return this.jobs.create(msg as Job);
+        if (!id && table === Table.JOBS) return jobs.create(msg as Job);
 
-        if (table === Table.JOBS) return this.jobs.update(msg as Job, '#chunks <= :chunks');
+        if (table === Table.JOBS) return jobs.update(msg as Job, '#chunks <= :chunks');
 
-        if (!id && table === Table.CHUNKS) return this.chunks.create(msg as Chunk);
+        if (!id && table === Table.CHUNKS) return chunks.create(msg as Chunk);
 
-        if (!id && table === Table.RESULTS) return this.results.create(msg as Result);
+        if (!id && table === Table.RESULTS) return results.create(msg as Result);
 
-        if (table === Table.RESULTS) return this.results.update(msg as Result, '');
+        if (table === Table.RESULTS) return results.update(msg as Result, '');
       } catch (error) {
-        this.logger.error('Failed to process message', data, error);
+        console.error('Failed to process message', data, error);
       }
     });
   }

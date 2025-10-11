@@ -28,6 +28,7 @@ export interface Job extends Message {
 }
 
 export interface Result extends Message {
+  job: string;
   client: string;
   payload: string;
 }

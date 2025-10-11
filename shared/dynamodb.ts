@@ -19,7 +19,7 @@ export class Stream<T extends { id: string } = any> {
   destroyed = false;
   pollingSpeed: 1000;
   start: Date = new Date();
-  cleanupTimeout: NodeJS.Timeout;
+  cleanup: NodeJS.Timeout;
   memory: Record<string, Date> = {};
   shards: Record<string, string> = {};
   listener: (item: T, date: Date) => void;
@@ -30,7 +30,7 @@ export class Stream<T extends { id: string } = any> {
     this.listener = listener;
 
     this.discover();
-    this.cleanup();
+    this.cleanShards();
   }
 
   async discover(ParentShardId?: string) {
@@ -132,19 +132,18 @@ export class Stream<T extends { id: string } = any> {
     Object.values(items).forEach((item: T) => this.listener(item, this.memory[item.id]));
   }
 
-  cleanup() {
-    this.cleanupTimeout = setTimeout(() => this.cleanup(), 3600000); // hourly loop
+  cleanShards() {
+    this.cleanup = setTimeout(() => this.cleanShards(), 3600000);
 
-    // TRIM_HORIZON is 24 hours, we remove only dates that exceed that time + some margin
-    const twentyFiveHoursAgo = new Date(Date.now() - 90000000);
+    const yesterday = new Date(Date.now() - 90000000);
 
     Object.entries(this.memory).map(([id, date]) => {
-      if (date < twentyFiveHoursAgo) delete this.memory[id];
+      if (date < yesterday) delete this.memory[id];
     });
   }
 
   destroy() {
-    if (this.cleanupTimeout) clearTimeout(this.cleanupTimeout);
+    if (this.cleanup) clearTimeout(this.cleanup);
 
     this.destroyed = true;
   }

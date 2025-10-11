@@ -12,6 +12,8 @@ db.on('change:jobs', onChange);
 loader.on('processed', onProcessed);
 
 function onChange(job: Job) {
+  console.log('job', job);
+
   if (!job.processor) return take(job);
 
   delete available[job.id];
@@ -26,6 +28,7 @@ async function onProcessed(job: Job, payload: string) {
     id: `result-${randomUUID()}`,
     cid: randomUUID(),
     table: Table.RESULTS,
+    job: job.id,
     client: job.client,
     payload: crypto.encrypt(job.client.substring(7), payload)
   };

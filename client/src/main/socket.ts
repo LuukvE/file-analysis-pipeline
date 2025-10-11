@@ -21,11 +21,11 @@ export class Socket {
     return this.ws;
   }
 
-  async send<T extends Message>(msg: Partial<T> & Message): Promise<T> {
+  async send<T extends Message>(msg: Partial<T> & Message, retry = 0): Promise<T | void> {
     if (this.ws.readyState !== WebSocket.OPEN) {
-      console.error('Socket is closed');
+      if (retry > 3) return console.error('Socket is closed');
 
-      return new Promise((cb) => setTimeout(() => cb(this.send(msg)), 1000));
+      return new Promise((cb) => setTimeout(() => cb(this.send(msg, retry + 1)), 1000));
     }
 
     const promise = new Promise<T>((cb) => {

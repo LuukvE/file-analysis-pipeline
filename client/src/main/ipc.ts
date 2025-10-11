@@ -1,12 +1,12 @@
 import { randomUUID } from 'crypto';
-import { Job, Table } from 'shared';
 import { lookup } from 'mime-types';
+import { Job, Table, Result, crypto } from 'shared';
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
 
-import { Socket } from './socket';
 import upload from './upload';
-import { publicKey } from './settings';
+import { Socket } from './socket';
+import { privateKey, publicKey } from './settings';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
   const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -45,9 +45,29 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
       created: new Date().toJSON()
     });
 
-    await upload(path, job, socket);
+    if (!job) return;
 
-    socket.destroy();
+    console.log('uploading', path);
+
+    upload(path, job, socket);
+
+    socket.ws.on('message', (data, binary) => {
+      if (binary) return;
+
+      const msg: Result = JSON.parse(data.toString('utf-8'));
+
+      console.log('msg', msg);
+
+      if (msg?.table !== Table.RESULTS) return;
+
+      if (msg.job !== job.id) return;
+
+      console.log(msg);
+
+      console.log(crypto.decrypt(privateKey, msg.payload));
+
+      socket.destroy();
+    });
   });
 }
 

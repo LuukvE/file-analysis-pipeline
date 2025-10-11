@@ -29,7 +29,7 @@ services:
       context: .
       dockerfile: ./server/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
-    command: bun --env-file=/config/.env.server --watch run server/src/index.ts
+    command: bun --env-file=/config/.env.server --watch run src/index.ts
     volumes:
       - config:/config
       - ./server/src:/app/server/src
@@ -46,7 +46,7 @@ services:
       context: .
       dockerfile: ./processor/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
-    command: bun --env-file=/config/.env.processor --watch run processor/src/index.ts
+    command: bun --env-file=/config/.env.processor --watch run src/index.ts
     volumes:
       - config:/config
       - ./processor/src:/app/processor/src

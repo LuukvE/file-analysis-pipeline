@@ -12,7 +12,7 @@ type Update = { index: number; done: boolean };
 
 export default async function (path: string, job: Job, socket: Socket) {
   const queues: {
-    chunks: Promise<Chunk>[];
+    chunks: Promise<Chunk | void>[];
     updates: Update[];
   } = {
     chunks: [],
@@ -109,6 +109,10 @@ export default async function (path: string, job: Job, socket: Socket) {
     destination.end();
 
     const chunk = await queues.chunks[index];
+
+    if (!chunk) return kill('Chunk not found');
+
+    console.log('chunk #', chunk.index);
 
     const options = {
       method: 'PUT',

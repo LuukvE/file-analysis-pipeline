@@ -7,5 +7,6 @@ COPY processor ./processor
 COPY server/package.json ./server/
 RUN bun install --frozen-lockfile
 USER bun
-CMD ["bun", "run", "processor/src/index.ts"]
+WORKDIR /app/processor
+CMD ["bun", "run", "src/index.ts"]
 
