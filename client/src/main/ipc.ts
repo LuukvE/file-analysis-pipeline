@@ -6,7 +6,7 @@ import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
 
 import upload from './upload';
 import { Socket } from './socket';
-import { privateKey, publicKey } from './settings';
+import { privateKey, publicKey, store } from './settings';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
   const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -32,7 +32,8 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
   watcher.current = chokidar.watch(path, opts);
 
   watcher.current.on('add', async (path) => {
-    const socket = new Socket();
+    const token = await store.get('token');
+    const socket = new Socket(token);
     const mime = lookup(path) || 'application/octet-stream';
 
     const job = await socket.send<Job>({
@@ -61,8 +62,6 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
       if (msg?.table !== Table.RESULTS) return;
 
       if (msg.job !== job.id) return;
-
-      console.log(msg);
 
       console.log(crypto.decrypt(privateKey, msg.payload));
 

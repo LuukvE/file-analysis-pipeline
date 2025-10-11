@@ -1,8 +1,22 @@
 import { join } from 'path';
 import { crypto } from 'shared';
-import { BrowserWindowConstructorOptions } from 'electron';
+import fs from 'node:fs/promises';
+import { app, BrowserWindowConstructorOptions } from 'electron';
 
 import icon from '../../resources/icon.png?asset';
+
+export const store = {
+  async set(key: string, value: string) {
+    const file = join(app.getPath('userData'), `${key}.txt`);
+
+    return fs.writeFile(file, value, 'utf-8');
+  },
+  async get(key: string) {
+    const file = join(app.getPath('userData'), `${key}.txt`);
+
+    return fs.readFile(file, 'utf-8');
+  }
+};
 
 export const rendererUrl = process.env['ELECTRON_RENDERER_URL']; // Set in dev
 

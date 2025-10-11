@@ -14,12 +14,12 @@ export const CHUNK_CHANGED_EVENT = 'db.chunk.changed';
 
 @Injectable()
 export class ChunksService implements OnModuleInit {
-  private readonly s3: S3Client;
-  private readonly table = 'chunks';
+  private s3: S3Client;
+  private table = 'chunks';
 
   constructor(
-    @Inject(DB_PROVIDER) private readonly db: dynamodb.DynamoDB,
-    private readonly events: EventEmitter2
+    @Inject(DB_PROVIDER) private db: dynamodb.DynamoDB,
+    private events: EventEmitter2
   ) {
     this.s3 = new S3Client({ region: REGION, forcePathStyle: true });
   }

@@ -1,10 +1,10 @@
 import { join } from 'path';
 import EventEmitter from 'events';
-import { app, BrowserWindow, ipcMain, protocol, shell } from 'electron';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, ipcMain, protocol, shell } from 'electron';
 
 import { onDialog, onFrame, onWatch } from './ipc';
-import { rendererUrl, windowOptions } from './settings';
+import { rendererUrl, store, windowOptions } from './settings';
 
 const emitter = new EventEmitter();
 
@@ -32,11 +32,13 @@ function onNotReady(token: string) {
   setTimeout(emitter.emit, 1000, 'signin', token);
 }
 
-function onReady() {
+async function onReady() {
   const win = new BrowserWindow(windowOptions);
 
   emitter.on('signin', (token: string) => {
     win.focus();
+
+    store.set('token', token);
 
     win.webContents.send('token', token);
   });
@@ -49,6 +51,12 @@ function onReady() {
     shell.openExternal(url);
 
     return { action: 'deny' };
+  });
+
+  win.webContents.on('did-finish-load', async () => {
+    const token = await store.get('token');
+
+    if (token) win.webContents.send('token', token);
   });
 
   if (is.dev && rendererUrl) return win.loadURL(rendererUrl);

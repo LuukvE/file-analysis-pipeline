@@ -11,11 +11,11 @@ export const RESULT_CHANGED_EVENT = 'db.result.changed';
 
 @Injectable()
 export class ResultsService implements OnModuleInit {
-  private readonly table = 'results';
+  private table = 'results';
 
   constructor(
-    @Inject(DB_PROVIDER) private readonly db: dynamodb.DynamoDB,
-    private readonly events: EventEmitter2
+    @Inject(DB_PROVIDER) private db: dynamodb.DynamoDB,
+    private events: EventEmitter2
   ) {}
 
   onModuleInit() {

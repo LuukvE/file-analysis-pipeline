@@ -3,7 +3,7 @@ import { Registry, collectDefaultMetrics, Counter, Histogram } from 'prom-client
 
 @Controller()
 export class MetricsController {
-  private static readonly registry = new Registry();
+  private static registry = new Registry();
   private static httpRequestDuration: Histogram<string>;
   private static httpRequestsTotal: Counter<string>;
 

@@ -11,11 +11,11 @@ export const JOB_CHANGED_EVENT = 'db.job.changed';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
-  private readonly table = 'jobs';
+  private table = 'jobs';
 
   constructor(
-    @Inject(DB_PROVIDER) private readonly db: dynamodb.DynamoDB,
-    private readonly events: EventEmitter2
+    @Inject(DB_PROVIDER) private db: dynamodb.DynamoDB,
+    private events: EventEmitter2
   ) {}
 
   onModuleInit() {

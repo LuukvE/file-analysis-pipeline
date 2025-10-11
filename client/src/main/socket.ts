@@ -5,16 +5,18 @@ export class Socket {
   url = 'ws://localhost:8080';
   ws: WebSocket;
 
-  constructor() {
+  constructor(private token: string) {
     this.ws = this.connect();
   }
 
   connect() {
-    this.ws = new WebSocket(this.url);
+    this.ws = new WebSocket(this.url, {
+      headers: {
+        Authorization: `Bearer ${this.token}`
+      }
+    });
 
-    this.ws.on('open', () => {});
-
-    this.ws.on('error', (error: Error) => {
+    this.ws.on('error', (_) => {
       setTimeout(() => this.connect(), 1000);
     });
 

@@ -14,10 +14,10 @@ export default () => {
     setPath(watchedFolder);
 
     const interval = setInterval(() => {
-      const stored = localStorage.getItem('token') || '';
+      const stored = sessionStorage.getItem('token') || '';
 
       setToken((prev) => (stored !== prev ? stored : prev));
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [setToken]);
@@ -39,24 +39,40 @@ export default () => {
 
       <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
         {!!token && (
-          <a
-            className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-            target="_blank"
-            rel="noreferrer"
-            onClick={async (e) => {
-              e.preventDefault();
+          <>
+            <a
+              className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+              target="_blank"
+              rel="noreferrer"
+              onClick={async (e) => {
+                e.preventDefault();
 
-              const path = await invoke('dialog');
+                const path = await invoke('dialog');
 
-              localStorage.setItem('watchedFolder', path || '');
+                localStorage.setItem('watchedFolder', path || '');
 
-              await invoke('watch', path);
+                await invoke('watch', path);
 
-              setPath(path);
-            }}
-          >
-            Select Folder
-          </a>
+                setPath(path);
+              }}
+            >
+              Select Folder
+            </a>
+            <a
+              className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
+              target="_blank"
+              rel="noreferrer"
+              onClick={async (e) => {
+                e.preventDefault();
+
+                sessionStorage.removeItem('token');
+
+                setToken('');
+              }}
+            >
+              Sign out
+            </a>
+          </>
         )}
 
         {!token && (

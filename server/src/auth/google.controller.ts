@@ -1,13 +1,16 @@
-import jwt from 'jsonwebtoken';
 import { google } from 'googleapis';
 import { type Request } from 'express';
+import { JwtService } from '@nestjs/jwt';
 import { Controller, Get, Query, Redirect, Req } from '@nestjs/common';
 
 import { SecretsService } from '../secrets/secrets.service';
 
 @Controller()
 export class GoogleController {
-  constructor(private readonly secrets: SecretsService) {}
+  constructor(
+    private jwt: JwtService,
+    private secrets: SecretsService
+  ) {}
 
   @Get('v1/google/init')
   @Redirect()
@@ -54,9 +57,8 @@ export class GoogleController {
     }
 
     const result: { id: string; email: string } = await googleRequest.json();
-
     const payload = { sub: result.id, email: `${result.email}`.toLowerCase() };
-    const token = jwt.sign(payload, this.secrets.get('JWT_SECRET'));
+    const token = await this.jwt.signAsync(payload);
     const url = `file-analysis-pipeline://success?token=${token}`;
 
     return {

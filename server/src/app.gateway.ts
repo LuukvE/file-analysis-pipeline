@@ -1,3 +1,5 @@
+import { IncomingMessage } from 'http';
+import { JwtService } from '@nestjs/jwt';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebSocket, WebSocketServer as WsServer } from 'ws';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
@@ -15,6 +17,7 @@ export class AppGateway {
   server: WsServer;
 
   constructor(
+    private jwt: JwtService,
     private jobs: JobsService,
     private chunks: ChunksService,
     private results: ResultsService
@@ -35,8 +38,18 @@ export class AppGateway {
     });
   }
 
-  handleConnection(client: WebSocket) {
+  async handleConnection(client: WebSocket, request: IncomingMessage) {
     const { jobs, results, chunks } = this;
+    const token = request.headers.authorization?.split(' ').pop() || '';
+    console.log('you sent me this', token, request.headers);
+    try {
+      const data = await this.jwt.verifyAsync(token);
+      console.log('data', data);
+    } catch (e) {
+      console.log('Invalid token', e);
+
+      return;
+    }
 
     console.log('listening for messages');
 
