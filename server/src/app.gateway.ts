@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebSocket, WebSocketServer as WsServer } from 'ws';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Chunk, Table, type Job, type Message, type Result } from 'shared/types';
+import { Chunk, Table, type Job, type Message, type Result } from 'shared';
 
 import { JOB_CHANGED_EVENT, JobsService } from './db/jobs.service';
 import { CHUNK_CHANGED_EVENT, ChunksService } from './db/chunks.service';
@@ -27,14 +27,10 @@ export class AppGateway {
   @OnEvent(CHUNK_CHANGED_EVENT)
   @OnEvent(RESULT_CHANGED_EVENT)
   broadcast(message: Message) {
-    console.log('broadcasting', message.id);
-
     const payload = JSON.stringify(message);
 
     this.server.clients.forEach((client: WebSocket) => {
       if (client.readyState !== WebSocket.OPEN) return;
-
-      console.log('sending', payload);
 
       client.send(payload);
     });
@@ -50,8 +46,6 @@ export class AppGateway {
         const msg: Message = JSON.parse(data.toString());
         const { table, id } = msg;
 
-        console.log('receiving', table, id);
-
         if (!id && table === Table.JOBS) return this.jobs.create(msg as Job);
 
         if (table === Table.JOBS) return this.jobs.update(msg as Job, '#chunks <= :chunks');
@@ -62,7 +56,6 @@ export class AppGateway {
 
         if (table === Table.RESULTS) return this.results.update(msg as Result, '');
       } catch (error) {
-        console.log('error', error);
         this.logger.error('Failed to process message', data, error);
       }
     });

@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import { Message } from 'shared/types';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { DescribeTableCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
@@ -11,6 +10,8 @@ import {
   GetShardIteratorCommand,
   ShardFilterType
 } from '@aws-sdk/client-dynamodb-streams';
+
+import { Message } from './types';
 
 export class Stream<T extends { id: string } = any> {
   db: DynamoDB;

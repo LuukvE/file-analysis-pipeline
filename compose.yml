@@ -21,8 +21,6 @@ services:
     ports:
       - "3000:3000"
       - "9090:9090"
-    volumes:
-      - ./monitor/data:/var/lib/grafana
     networks:
       - bridge-network
 
@@ -31,16 +29,12 @@ services:
       context: .
       dockerfile: ./server/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
-    # AWS Secret Manager is used for all secrets
-    command: bun --env-file=/config/.env.server --watch run src/index.ts
+    command: bun --env-file=/config/.env.server --watch run server/src/index.ts
     volumes:
-      - ./server/:/app/server/
-      - ./shared/:/app/shared/
       - config:/config
+      - ./server/src:/app/server/src
     networks:
       - bridge-network
-    environment:
-      - PORT=8080
     ports:
       - "8080:8080"
     depends_on:
@@ -52,12 +46,10 @@ services:
       context: .
       dockerfile: ./processor/Dockerfile
     # .env files are only used for dev, and exclusively to set AWS values
-    # AWS Secret Manager is used for all secrets
-    command: bun --env-file=/config/.env.processor --watch run src/index.ts
+    command: bun --env-file=/config/.env.processor --watch run processor/src/index.ts
     volumes:
-      - ./processor/:/app/processor/
-      - ./shared/:/app/shared/
       - config:/config
+      - ./processor/src:/app/processor/src
     networks:
       - bridge-network
     depends_on:

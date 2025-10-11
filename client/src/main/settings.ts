@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { generate } from 'shared/crypto';
+import { crypto } from 'shared';
 import { BrowserWindowConstructorOptions } from 'electron';
 
 import icon from '../../resources/icon.png?asset';
@@ -21,4 +21,4 @@ export const windowOptions: BrowserWindowConstructorOptions = {
 
 export const minChunkSize = 30 * 1024 * 1024; // 30MB
 
-export const { publicKey, privateKey } = generate();
+export const { publicKey, privateKey } = crypto.generate();

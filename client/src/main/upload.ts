@@ -1,8 +1,9 @@
+import { createReadStream } from 'fs';
 import { request } from 'http';
+import { randomUUID } from 'crypto';
 import { PassThrough } from 'stream';
 import { spawn } from 'child_process';
-import { createReadStream } from 'fs';
-import { Chunk, Job, Status, Table } from 'shared/types';
+import { Chunk, Job, Status, Table } from 'shared';
 
 import { Socket } from './socket';
 import { minChunkSize } from './settings';
@@ -49,7 +50,7 @@ export default async function (path: string, job: Job, socket: Socket) {
 
     const chunk: Chunk = {
       id: '',
-      cid: crypto.randomUUID(),
+      cid: randomUUID(),
       table: Table.CHUNKS,
       job: job.id,
       index: 0,
@@ -87,7 +88,7 @@ export default async function (path: string, job: Job, socket: Socket) {
     queues.chunks.push(
       socket.send<Chunk>({
         id: '',
-        cid: crypto.randomUUID(),
+        cid: randomUUID(),
         table: Table.CHUNKS,
         index: tracker.index,
         job: job.id,
@@ -131,7 +132,7 @@ export default async function (path: string, job: Job, socket: Socket) {
     return (async function loop({ done, index }) {
       await socket.send<Job>({
         id: job.id,
-        cid: crypto.randomUUID(),
+        cid: randomUUID(),
         table: Table.JOBS,
         chunks: index + 1,
         status: done ? Status.UPLOADED : Status.UPLOADING

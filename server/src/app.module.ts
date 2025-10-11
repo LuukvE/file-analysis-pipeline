@@ -5,19 +5,18 @@ import { DbModule } from './db/db.module';
 import { AppGateway } from './app.gateway';
 import { AuthModule } from './auth/auth.module';
 import { SecretsModule } from './secrets/secrets.module';
-import { MetricsModule } from './metrics/metrics.module';
 import { MetricsMiddleware } from './metrics/metrics.middleware';
+import { MetricsController } from './metrics/metrics.controller';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot({ global: true }),
     DbModule,
     SecretsModule,
-    AuthModule,
-    MetricsModule
+    AuthModule
   ],
-  controllers: [],
-  providers: [AppGateway]
+  controllers: [MetricsController],
+  providers: [AppGateway, MetricsMiddleware]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

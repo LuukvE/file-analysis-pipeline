@@ -1,4 +1,7 @@
-import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand
+} from '@aws-sdk/client-secrets-manager';
 
 export async function getSecrets(
   SecretId: string,
@@ -13,6 +16,6 @@ export async function getSecrets(
     if (response.SecretString) return JSON.parse(response.SecretString);
   } catch (error) {
     // Do not log the error, it might log secrets
-    console.log('AWS Secrets error', SecretId, region);
+    console.error('Secrets failed to load');
   }
 }

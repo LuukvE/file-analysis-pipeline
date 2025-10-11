@@ -1,4 +1,4 @@
-import { type Message } from 'shared/types';
+import { type Message } from 'shared';
 import WebSocket, { type Data } from 'ws';
 
 export class Socket {
@@ -12,11 +12,9 @@ export class Socket {
   connect() {
     this.ws = new WebSocket(this.url);
 
-    this.ws.on('open', () => console.log('Websocket established'));
+    this.ws.on('open', () => {});
 
     this.ws.on('error', (error: Error) => {
-      console.log('Websocket error', error);
-
       setTimeout(() => this.connect(), 1000);
     });
 
@@ -31,14 +29,10 @@ export class Socket {
     }
 
     const promise = new Promise<T>((cb) => {
-      console.log('>', msg.table, msg.cid);
-
       this.ws.on('message', function listener(data: Data) {
         const message = JSON.parse(data.toString('utf-8')) as T;
 
         if (message?.cid !== msg.cid) return;
-
-        console.log('<', msg.table, msg.cid);
 
         this.off('message', listener);
 

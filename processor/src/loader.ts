@@ -1,9 +1,9 @@
-import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { finished } from 'stream/promises';
-import { Job, Status } from 'shared/types';
-import { Readable, Writable } from 'stream';
 import { IncomingMessage, request } from 'http';
+import { Job, Status } from 'shared';
+import { Readable, Writable } from 'stream';
+import { spawn } from 'child_process';
+import { finished } from 'stream/promises';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 const REGION = process.env['AWS_REGION'];
@@ -34,14 +34,11 @@ export const memory: {
 loader.on('incoming', onIncoming);
 
 async function onIncoming(job: Job) {
-  console.log('incoming', job.id);
-
   memory.job = job;
 
   memory.s3[REGION] = memory.s3[REGION] || new S3Client({ forcePathStyle: true });
 
   if (!job.chunks) return;
-  console.log('ready to download #chunks', job.chunks);
   for (let i = 0; i < job.chunks; i++) {
     if (memory.chunks[i]) continue;
 
@@ -60,7 +57,7 @@ async function onIncoming(job: Job) {
 
   const xz = spawn('xz', ['-d', '-c']);
 
-  xz.on('error', (err) => console.log('xz err', err));
+  xz.on('error', (err) => {});
 
   memory.destination = xz.stdin;
 
@@ -70,7 +67,6 @@ async function onIncoming(job: Job) {
 }
 
 async function reconstruct(chunk: number) {
-  console.log('reconstructing', chunk, memory.job.status, memory.chunks.length);
   if (memory.job.status === Status.UPLOADED && chunk === memory.chunks.length) {
     return finish();
   }
@@ -94,8 +90,6 @@ function finish() {
   memory.chunks = [];
 
   memory.job = null;
-
-  console.log('finished');
 }
 
 function engine(job: Job, stream: Readable) {
@@ -110,8 +104,6 @@ function engine(job: Job, stream: Readable) {
   const req = request(options, (res) => engineHandler(job, res));
 
   req.on('error', (e) => console.error(`Problem with request: ${e.message}`));
-
-  console.log('streaming to xz');
 
   stream.pipe(req);
 }

@@ -1,5 +1,5 @@
-import { type Chunk } from 'shared/types';
-import { DynamoDB } from 'shared/dynamodb';
+import { randomUUID } from 'crypto';
+import { type Chunk, dynamodb } from 'shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -18,7 +18,7 @@ export class ChunksService implements OnModuleInit {
   private readonly table = 'chunks';
 
   constructor(
-    @Inject(DB_PROVIDER) private readonly db: DynamoDB,
+    @Inject(DB_PROVIDER) private readonly db: dynamodb.DynamoDB,
     private readonly events: EventEmitter2
   ) {
     this.s3 = new S3Client({ region: REGION, forcePathStyle: true });
@@ -35,7 +35,7 @@ export class ChunksService implements OnModuleInit {
     const command = new PutObjectCommand({ Bucket: BUCKET, Key });
     const url = await getSignedUrl(this.s3, command, { expiresIn: 3600 });
 
-    chunk.id = `chunk-${crypto.randomUUID()}`;
+    chunk.id = `chunk-${randomUUID()}`;
 
     chunk.url = ['http://localhost:4566', ...url.split('/').slice(3)].join('/');
 

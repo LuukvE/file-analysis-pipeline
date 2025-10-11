@@ -5,10 +5,10 @@ import { NestApplicationOptions } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 (async function bootstrap() {
-  const opts: NestApplicationOptions = {} // logger: ['warn', 'error']
+  const opts: NestApplicationOptions = { logger: ['warn', 'error'] };
   const app = await NestFactory.create(AppModule, opts);
 
   app.useWebSocketAdapter(new WsAdapter(app));
 
-  await app.listen(parseInt(`${process.env['PORT']}`));
+  await app.listen(8080);
 })();

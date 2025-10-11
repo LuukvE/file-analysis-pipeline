@@ -1,6 +1,6 @@
-import { DynamoDB } from 'shared/dynamodb';
+import { randomUUID } from 'crypto';
+import { dynamodb, type Message, type Job } from 'shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type Message, type Job } from 'shared/types';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { DB_PROVIDER } from './db.provider';
@@ -14,7 +14,7 @@ export class JobsService implements OnModuleInit {
   private readonly table = 'jobs';
 
   constructor(
-    @Inject(DB_PROVIDER) private readonly db: DynamoDB,
+    @Inject(DB_PROVIDER) private readonly db: dynamodb.DynamoDB,
     private readonly events: EventEmitter2
   ) {}
 
@@ -25,7 +25,7 @@ export class JobsService implements OnModuleInit {
   }
 
   async create(job: Job) {
-    job.id = `job-${crypto.randomUUID()}`;
+    job.id = `job-${randomUUID()}`;
     job.chunks = job.chunks || 0;
 
     return this.db.create<Job>(job, this.table);

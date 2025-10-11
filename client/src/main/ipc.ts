@@ -1,10 +1,11 @@
+import { randomUUID } from 'crypto';
+import { Job, Table } from 'shared';
 import { lookup } from 'mime-types';
-import { Job, Table } from 'shared/types';
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
 
-import upload from './upload';
 import { Socket } from './socket';
+import upload from './upload';
 import { publicKey } from './settings';
 
 export async function onDialog(_e: IpcMainInvokeEvent) {
@@ -36,7 +37,7 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
 
     const job = await socket.send<Job>({
       id: '',
-      cid: crypto.randomUUID(),
+      cid: randomUUID(),
       table: Table.JOBS,
       version: app.getVersion(),
       mime,

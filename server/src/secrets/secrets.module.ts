@@ -1,5 +1,5 @@
+import { secrets } from 'shared';
 import { Global, Module } from '@nestjs/common';
-import { getSecrets } from 'shared/secrets';
 
 import { SecretsService } from './secrets.service';
 
@@ -9,9 +9,9 @@ import { SecretsService } from './secrets.service';
     {
       provide: SecretsService,
       useFactory: async () => {
-        const secrets = await getSecrets('server-secrets');
+        const loadedSecrets = await secrets.getSecrets('server-secrets');
 
-        return new SecretsService(secrets || {});
+        return new SecretsService(loadedSecrets || {});
       }
     }
   ],

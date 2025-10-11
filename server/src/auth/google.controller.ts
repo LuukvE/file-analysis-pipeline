@@ -12,8 +12,6 @@ export class GoogleController {
   @Get('v1/google/init')
   @Redirect()
   async init(@Req() req: Request) {
-    console.log(`${req.protocol}://${req.host}/v1/google/authenticate`);
-
     const params = new URLSearchParams({
       client_id: this.secrets.get('GOOGLE_CLIENT_ID'),
       redirect_uri: `${req.protocol}://${req.host}/v1/google/authenticate`,
@@ -37,11 +35,7 @@ export class GoogleController {
       `${req.protocol}://${req.host}/v1/google/authenticate`
     );
 
-    console.log('code', code);
-
     const { tokens } = await oauth2Client.getToken(code || '');
-
-    console.log('tokens', tokens);
 
     const googleRequest = await fetch(
       `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`,
@@ -53,8 +47,6 @@ export class GoogleController {
     );
 
     if (googleRequest.status >= 300) {
-      console.log('Google error', await googleRequest.text());
-
       return {
         url: `file-analysis-pipeline://error`,
         statusCode: 302
@@ -66,8 +58,6 @@ export class GoogleController {
     const payload = { sub: result.id, email: `${result.email}`.toLowerCase() };
     const token = jwt.sign(payload, this.secrets.get('JWT_SECRET'));
     const url = `file-analysis-pipeline://success?token=${token}`;
-
-    console.log('open', url);
 
     return {
       url,

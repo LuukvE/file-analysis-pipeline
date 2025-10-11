@@ -1,19 +1,17 @@
-import { Job, Result, Table } from 'shared/types';
-import loader, { memory } from './loader';
-import { DynamoDB } from 'shared/dynamodb';
-import { encrypt } from 'shared/crypto';
+import { randomUUID } from 'crypto';
+import { Job, Result, Table, dynamodb, crypto } from 'shared';
 
-const db = new DynamoDB();
+import loader, { memory } from './loader';
+
+const db = new dynamodb.DynamoDB();
 const available: Record<string, Job> = {};
-const processor = `processor-${crypto.randomUUID()}`;
+const processor = `processor-${randomUUID()}`;
 
 db.on('change:jobs', onChange);
 
 loader.on('processed', onProcessed);
 
 function onChange(job: Job) {
-  console.log('changed', job);
-
   if (!job.processor) return take(job);
 
   delete available[job.id];
@@ -25,11 +23,11 @@ function onChange(job: Job) {
 
 async function onProcessed(job: Job, payload: string) {
   const result: Result = {
-    id: `result-${crypto.randomUUID()}`,
-    cid: crypto.randomUUID(),
+    id: `result-${randomUUID()}`,
+    cid: randomUUID(),
     table: Table.RESULTS,
     client: job.client,
-    payload: encrypt(job.client.substring(7), payload)
+    payload: crypto.encrypt(job.client.substring(7), payload)
   };
 
   await db.create<Result>(result, 'results');
@@ -42,13 +40,9 @@ async function onProcessed(job: Job, payload: string) {
 function take(job: Job) {
   available[job.id] = job;
 
-  console.log('emitting take', job.id, job.chunks, memory.job);
-
   if (!job.chunks) return;
 
   if (memory.job) return;
-
-  console.log('update', { id: job.id, processor });
 
   db.update({ id: job.id, processor }, 'jobs', 'attribute_not_exists(processor)');
 }

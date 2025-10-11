@@ -8,7 +8,7 @@ export class SecretsService {
     this.secrets = secrets;
   }
 
-  get(key: string): any {
-    return this.secrets[key];
+  get(key: string): string {
+    return this.secrets[key] || '';
   }
 }

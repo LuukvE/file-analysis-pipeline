@@ -1,10 +1,10 @@
-import path, { join } from 'path';
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { join } from 'path';
+import EventEmitter from 'events';
 import { app, BrowserWindow, ipcMain, protocol, shell } from 'electron';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 
 import { onDialog, onFrame, onWatch } from './ipc';
 import { rendererUrl, windowOptions } from './settings';
-import EventEmitter from 'events';
 
 const emitter = new EventEmitter();
 
@@ -37,8 +37,6 @@ function onReady() {
 
   emitter.on('signin', (token: string) => {
     win.focus();
-
-    console.log('token', token);
 
     win.webContents.send('token', token);
   });
@@ -83,10 +81,8 @@ function initScheme() {
   if (process.defaultApp) {
     if (process.argv.length < 2) return;
 
-    console.log(33, process.execPath);
-
     return app.setAsDefaultProtocolClient(scheme, process.execPath, [
-      path.resolve(process.argv[1])
+      join(process.argv[1])
     ]);
   }
 
