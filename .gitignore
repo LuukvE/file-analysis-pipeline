@@ -13,6 +13,3 @@ out
 secrets.server.json
 secrets.processor.json
 monitor/data
-test-results/
-playwright-report/
-playwright/.cache/
