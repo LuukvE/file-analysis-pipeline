@@ -1,5 +1,5 @@
-import { test as base, _electron as electron, ElectronApplication, Page } from '@playwright/test';
 import path from 'path';
+import { test as base, _electron as electron, ElectronApplication, Page } from '@playwright/test';
 
 type Fixtures = {
   app: ElectronApplication;

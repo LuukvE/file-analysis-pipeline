@@ -1,5 +1,6 @@
-import { type Message } from 'shared';
 import WebSocket, { type Data } from 'ws';
+
+import { type Message } from 'shared';
 
 export class Socket {
   url = 'ws://localhost:8080';

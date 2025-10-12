@@ -1,7 +1,9 @@
+import { join } from 'path';
+import { readFileSync } from 'fs';
 import { google } from 'googleapis';
 import { type Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { Controller, Get, Query, Redirect, Req } from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Req, Header } from '@nestjs/common';
 
 import { SecretsService } from '../secrets/secrets.service';
 
@@ -59,11 +61,18 @@ export class GoogleController {
     const result: { id: string; email: string } = await googleRequest.json();
     const payload = { sub: result.id, email: `${result.email}`.toLowerCase() };
     const token = await this.jwt.signAsync(payload);
-    const url = `file-analysis-pipeline://success?token=${token}`;
 
     return {
-      url,
+      url: `/v1/google/success?token=${token}`,
       statusCode: 302
     };
+  }
+
+  SUCCESS_HTML = readFileSync(join(__dirname, './signin.html'), 'utf-8');
+
+  @Get('v1/google/success')
+  @Header('Content-Type', 'text/html')
+  success() {
+    return this.SUCCESS_HTML;
   }
 }

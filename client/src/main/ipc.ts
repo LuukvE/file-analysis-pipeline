@@ -85,3 +85,7 @@ export function onFrame(e: IpcMainInvokeEvent, action: 'close' | 'toggle' | 'min
 
   return true;
 }
+
+export function onSignout() {
+  store.set('token', '');
+}

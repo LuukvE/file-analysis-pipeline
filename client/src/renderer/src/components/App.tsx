@@ -8,7 +8,7 @@ const { invoke } = window.electron.ipcRenderer;
 // green - #58BC82
 // yellow - #E9C46A
 // orange - #F4A261
-// red -#E76F51
+// red - #E76F51
 
 export default () => {
   const [token, setToken] = useState('');
@@ -46,21 +46,20 @@ export default () => {
         </Button>
       </div>
 
-      <div className="text-3xl font-bold text-center mx-2.5 py-4 mt-auto bg-[linear-gradient(90deg,#E76F51_0%,#F4A261_100%)] bg-clip-text text-transparent">
-        {path ? <>Ready to upload</> : <>Select a folder to watch</>}
-      </div>
-      {path && (
-        <p className="text-[#444] text-sm font-bold">
-          System is watching{' '}
-          <code className="font-mono bg-[#264653]/20 rounded-xs text-sm px-1.5 py-1 font-bold">
-            {path}
-          </code>
-        </p>
-      )}
-
-      <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
-        {!!token && (
-          <>
+      {!!token && (
+        <>
+          <div className="text-3xl font-bold text-center mx-2.5 py-4 mt-auto bg-[linear-gradient(90deg,#E76F51_0%,#F4A261_100%)] bg-clip-text text-transparent">
+            {path ? <>Ready to upload</> : <>Select a folder to watch</>}
+          </div>
+          {path && (
+            <p className="text-[#444] text-sm font-bold">
+              System is watching{' '}
+              <code className="font-mono bg-[#264653]/20 rounded-xs text-sm px-1.5 py-1 font-bold">
+                {path}
+              </code>
+            </p>
+          )}
+          <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
             <Button
               onClick={async (e) => {
                 e.preventDefault();
@@ -76,24 +75,30 @@ export default () => {
             >
               Select Folder
             </Button>
-          </>
-        )}
+          </div>
+          <Button
+            className="mb-1 mr-1 ml-auto py-1 px-1.5 h-5 rounded opacity-50 hover:opacity-100 hover:bg-[#E76F51] text-[10px]"
+            onClick={(e) => {
+              e.preventDefault();
 
-        {!token && <Button href="http://localhost:8080/v1/google/init">Sign in</Button>}
-      </div>
-      {token && (
-        <Button
-          className="mb-1 mr-1 ml-auto py-1 px-1.5 h-5 rounded opacity-50 hover:opacity-100 hover:bg-[#E76F51] text-[10px]"
-          onClick={(e) => {
-            e.preventDefault();
+              invoke('signout');
 
-            sessionStorage.removeItem('token');
+              sessionStorage.removeItem('token');
 
-            setToken('');
-          }}
-        >
-          Sign out
-        </Button>
+              setToken('');
+            }}
+          >
+            Sign out
+          </Button>
+        </>
+      )}
+
+      {!token && (
+        <>
+          <div className="flex pt-8 flex-wrap justify-start pb-8 gap-x-4 items-center grow">
+            <Button href="http://localhost:8080/v1/google/init">Sign in</Button>
+          </div>
+        </>
       )}
     </div>
   );
