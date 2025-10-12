@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 
+import Button from './Button';
+
 const { invoke } = window.electron.ipcRenderer;
+
+// blue - #264653
+// green - #58BC82
+// yellow - #E9C46A
+// orange - #F4A261
+// red -#E76F51
 
 export default () => {
   const [token, setToken] = useState('');
@@ -23,15 +31,28 @@ export default () => {
   }, [setToken]);
 
   return (
-    <>
-      <div className="draggable w-full h-8 bg-black/15" />
-      <div className="text-3xl font-bold text-center mx-2.5 py-4 mt-auto">
+    <div className="bg-white/70 w-full h-full flex flex-col items-center">
+      <div className="w-full h-8 fixed top-0 left-0 w-full flex">
+        <div className="draggable grow h-full" />
+        <Button
+          className="mt-1 mr-1 p-1 h-5 rounded hover:bg-[#E76F51]"
+          onClick={(e) => {
+            e.preventDefault();
+
+            invoke('frame', 'close');
+          }}
+        >
+          ✕
+        </Button>
+      </div>
+
+      <div className="text-3xl font-bold text-center mx-2.5 py-4 mt-auto bg-[linear-gradient(90deg,#E76F51_0%,#F4A261_100%)] bg-clip-text text-transparent">
         {path ? <>Ready to upload</> : <>Select a folder to watch</>}
       </div>
       {path && (
-        <p className="text-[#ebebf599] text-sm font-bold">
+        <p className="text-[#444] text-sm font-bold">
           System is watching{' '}
-          <code className="font-mono bg-[#282828] rounded-xs text-sm px-1.5 py-1 font-bold">
+          <code className="font-mono bg-[#264653]/20 rounded-xs text-sm px-1.5 py-1 font-bold">
             {path}
           </code>
         </p>
@@ -40,10 +61,7 @@ export default () => {
       <div className="flex pt-8 flex-wrap justify-start mb-auto pb-8 gap-x-4">
         {!!token && (
           <>
-            <a
-              className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-              target="_blank"
-              rel="noreferrer"
+            <Button
               onClick={async (e) => {
                 e.preventDefault();
 
@@ -57,48 +75,26 @@ export default () => {
               }}
             >
               Select Folder
-            </a>
-            <a
-              className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-              target="_blank"
-              rel="noreferrer"
-              onClick={async (e) => {
-                e.preventDefault();
-
-                sessionStorage.removeItem('token');
-
-                setToken('');
-              }}
-            >
-              Sign out
-            </a>
+            </Button>
           </>
         )}
 
-        {!token && (
-          <a
-            className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-            target="_blank"
-            rel="noreferrer"
-            href="http://localhost:8080/v1/google/init"
-          >
-            Sign in
-          </a>
-        )}
-
-        <a
-          className="cursor-pointer no-underline border border-transparent text-center font-bold bg-[#32363f] flex items-center justify-center h-10 px-5 rounded-3xl text-sm hover:text-[rgba(255,255,245,0.86)] hover:bg-[#414853]"
-          target="_blank"
-          rel="noreferrer"
+        {!token && <Button href="http://localhost:8080/v1/google/init">Sign in</Button>}
+      </div>
+      {token && (
+        <Button
+          className="mb-1 mr-1 ml-auto py-1 px-1.5 h-5 rounded opacity-50 hover:opacity-100 hover:bg-[#E76F51] text-[10px]"
           onClick={(e) => {
             e.preventDefault();
 
-            invoke('frame', 'close');
+            sessionStorage.removeItem('token');
+
+            setToken('');
           }}
         >
-          Close App
-        </a>
-      </div>
-    </>
+          Sign out
+        </Button>
+      )}
+    </div>
   );
 };
