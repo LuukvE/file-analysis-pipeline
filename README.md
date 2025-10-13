@@ -21,6 +21,7 @@ This is a system aimed at importing files from desktop computers, delivering the
 
 ## Reasoning
 
+- Secrets are handled by AWS Secret Manager, but for local development I inject my secrets into that manager from json files in the root.
 - Compress large files using multiple CPUs. The speed increase from having less to send over the network will outweigh the speed decrease of heavy compression.
 - Chunk up large files while compressing them to avoid intermediate disk I/O and to allow for the processor to download the chunks already uploaded.
 - Upload directly to S3. Reducing the file transfer time to S3 involves cutting out systems from the pipeline, direct client to S3 uploads are ideal.
@@ -31,4 +32,4 @@ This is a system aimed at importing files from desktop computers, delivering the
 - Support continuous deployments of new versions of each part of the stack, including versions with breaking changes. By using multiple processors that could be written for different versions, it allows gradual upgrading.
 - Give clients control over their upgrade. Since customers might wish to run their own internal tests before adoption. This feature is especially important for critical systems managed by external customers.
 - Use Docker Compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
-- Emulate AWS services using LocalStack, enabling improved testing and development with easily configurable IAM policies, DynamoDB tables and S3 buckets. This approach also allows for developer-specific mock data.
+- Emulate AWS services using LocalStack, enabling improved testing and development with easily configurable IAM policies, DynamoDB tables, S3 buckets and secrets. This approach also allows for developer-specific mock data.
