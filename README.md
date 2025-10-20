@@ -19,6 +19,45 @@ This is a system aimed at importing files from desktop computers, delivering the
 - ⚙️ **Processor:** Receive file stream, Run as node in scalable network, Communicate with sandboxed Engine
 - 🤖 **Engine:** Perform file analysis, my example just counts file size _- Replace this with your AI_
 
+## Installation
+
+I run on WSL, with Ubuntu 24.04 LTS
+
+```bash
+# Bun 1.3
+curl -fsSL https://bun.com/install | bash
+
+# Chromium dependencies for Electron
+sudo apt-get update
+sudo apt-get install -y \
+  libnss3 \
+  libnspr4 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libcups2 \
+  libdrm2 \
+  libxkbcommon0 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxfixes3 \
+  libxrandr2 \
+  libgbm1 \
+  libasound2 \
+  libpangocairo-1.0-0 \
+  libgtk-3-0`
+
+# Node is still required to run electron-builder
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+nvm install 22
+
+# Within repo root
+bun install
+
+# Within client folder
+bun install
+```
+
 ## Reasoning
 
 - When autoscaling the server, use the NodeJS event loop lag as a metric, in combination with request rate and latency. (TODO)

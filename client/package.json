@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "./out/main/index.js",
   "author": "Luuk van Egeraat",
+  "homepage": "https://www.linkedin.com/in/luukvanegeraat",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
