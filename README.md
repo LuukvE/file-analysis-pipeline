@@ -21,41 +21,37 @@ This is a system aimed at importing files from desktop computers, delivering the
 
 ## Installation
 
-I run on WSL, with Ubuntu 24.04 LTS
-
 ```bash
+# Ubuntu 24.04 LTS with Docker Desktop
+
 # Bun 1.3
 curl -fsSL https://bun.com/install | bash
 
-# Chromium dependencies for Electron
-sudo apt-get update
-sudo apt-get install -y \
-  libnss3 \
-  libnspr4 \
-  libatk1.0-0 \
-  libatk-bridge2.0-0 \
-  libcups2 \
-  libdrm2 \
-  libxkbcommon0 \
-  libxcomposite1 \
-  libxdamage1 \
-  libxfixes3 \
-  libxrandr2 \
-  libgbm1 \
-  libasound2 \
-  libpangocairo-1.0-0 \
-  libgtk-3-0`
+# Chromium-compatible browser is required for Electron
+# Any external browser is required for SSO
+wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+sudo apt install -y /tmp/google-chrome-stable_current_amd64.deb && \
+rm /tmp/google-chrome-stable_current_amd64.deb
 
-# Node is still required to run electron-builder
+# Node is required to run electron-builder
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-
 nvm install 22
 
 # Within repo root
 bun install
-
-# Within client folder
+cd client
 bun install
+bun run setup # Configure protocol for Electron
+
+# Tip: Run the default build task with `Ctrl-Shift-B` to launch everything
+
+# Or run:
+bun run aws # LocalStack emulator
+bun run server
+bun run processor
+bun run engine
+bun run client
+bun run monitor # Grafana
 ```
 
 ## Reasoning

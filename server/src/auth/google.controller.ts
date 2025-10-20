@@ -53,7 +53,7 @@ export class GoogleController {
 
     if (googleRequest.status >= 300) {
       return {
-        url: `file-analysis-pipeline://error`,
+        url: `fap://error`,
         statusCode: 302
       };
     }

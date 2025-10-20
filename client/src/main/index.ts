@@ -1,12 +1,12 @@
-import { join } from 'path';
+import { resolve } from 'path';
 import { electronApp } from '@electron-toolkit/utils';
 import { app, BrowserWindow, protocol } from 'electron';
 
 import { Client } from './client';
 
 (async () => {
+  const scheme = 'fap';
   const client = new Client();
-  const scheme = 'file-analysis-pipeline';
   const lock = app.requestSingleInstanceLock();
 
   electronApp.setAppUserModelId('com.file-analysis-pipeline');
@@ -37,13 +37,9 @@ import { Client } from './client';
 
   client.parseUrl(process.argv.find((arg) => arg.startsWith(scheme)));
 
-  if (process.defaultApp) {
-    if (process.argv.length < 2) return;
+  if (!process.defaultApp) return app.setAsDefaultProtocolClient(scheme);
 
-    return app.setAsDefaultProtocolClient(scheme, process.execPath, [
-      join(process.argv[1])
-    ]);
-  }
+  const args = [resolve(process.argv[1] || '.')];
 
-  app.setAsDefaultProtocolClient(scheme);
+  app.setAsDefaultProtocolClient(scheme, process.execPath, args);
 })();

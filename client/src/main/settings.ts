@@ -14,7 +14,9 @@ export const store = {
   async get(key: string) {
     const file = join(app.getPath('userData'), `${key}.txt`);
 
-    return fs.readFile(file, 'utf-8');
+    return fs.readFile(file, 'utf-8').catch(() => {
+      return '';
+    });
   }
 };
 
