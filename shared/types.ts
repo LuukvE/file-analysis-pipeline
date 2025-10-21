@@ -20,7 +20,7 @@ export interface Job extends Message {
   created: string;
   mime: string;
   file: string;
-  size: string;
+  size: number;
   client: string;
   signature?: string;
   status?: Status;

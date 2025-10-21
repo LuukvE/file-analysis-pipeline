@@ -14,7 +14,7 @@ export default () => {
   return (
     <div className="bg-white/70 w-full h-full flex flex-col items-center">
       <div className="w-full h-8 fixed top-0 left-0 w-full flex">
-        <div className="draggable grow h-full" />
+        <div className="draggable grow h-4" />
         <Button
           className="mt-1 mr-1 p-1 h-5 rounded hover:bg-[#E76F51]"
           onClick={(e) => {

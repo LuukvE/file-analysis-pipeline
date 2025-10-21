@@ -1,3 +1,4 @@
+import { statSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { Job, Table, Result, crypto } from 'shared';
@@ -5,6 +6,7 @@ import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
 import { app, BrowserWindow, dialog, IpcMainInvokeEvent } from 'electron';
 
 import upload from './upload';
+import { client } from './index';
 import { Socket } from './socket';
 import { privateKey, publicKey, store } from './settings';
 
@@ -41,10 +43,14 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
       cid: randomUUID(),
       table: Table.JOBS,
       version: app.getVersion(),
+      file: path,
+      size: statSync(path).size,
       mime,
       client: `client-${publicKey}`,
       created: new Date().toJSON()
     });
+
+    client.win?.webContents.send('row', job);
 
     if (!job) return;
 
@@ -57,13 +63,18 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
 
       const msg: Result = JSON.parse(data.toString('utf-8'));
 
-      console.log('msg', msg);
+      if (msg.table === Table.JOBS) console.log('msg', msg);
+
+      if (msg.table === Table.JOBS) return client.win?.webContents.send('row', msg);
 
       if (msg?.table !== Table.RESULTS) return;
 
       if (msg.job !== job.id) return;
 
-      console.log(crypto.decrypt(privateKey, msg.payload));
+      client.win?.webContents.send('row', {
+        id: msg.job,
+        result: crypto.decrypt(privateKey, msg.payload)
+      });
 
       socket.destroy();
     });

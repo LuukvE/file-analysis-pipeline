@@ -1,10 +1,10 @@
 import { RefObject } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { Chunk, Job, Result, Status, Table } from 'shared/types';
+import { Job, Status, Table } from 'shared/types';
 
 export { Table, Status };
 
-export type Row = { progress?: Chunk[]; result?: Result } & Job;
+export type Row = { result?: string } & Job;
 
 export type GridRef = RefObject<AgGridReact<Row> | null> | null;
 

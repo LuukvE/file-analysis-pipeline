@@ -6,11 +6,11 @@
     "shared"
   ],
   "scripts": {
-    "aws": "docker compose up aws --force-recreate --build",
-    "server": "docker compose up server --force-recreate --build",
-    "processor": "docker compose up processor --force-recreate --build",
-    "engine": "docker compose up engine --force-recreate --build",
-    "monitor": "docker compose up monitor --force-recreate --build",
+    "aws": "docker compose up aws --build",
+    "server": "docker compose up server --no-deps --build",
+    "processor": "docker compose up processor --no-deps --build",
+    "engine": "docker compose up engine --no-deps --build",
+    "monitor": "docker compose up monitor --no-deps --build",
     "client": "cd client && bun install --frozen-lockfile && bun run dev"
   }
 }

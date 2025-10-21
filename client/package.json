@@ -26,6 +26,7 @@
     "@tailwindcss/vite": "4.1.13",
     "ag-grid-react": "34.2.0",
     "chokidar": "4.0.3",
+    "dayjs": "^1.11.18",
     "electron-updater": "6.3.9",
     "mime-types": "3.0.1",
     "shared": "file:../shared",

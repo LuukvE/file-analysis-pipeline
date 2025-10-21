@@ -4,9 +4,10 @@ import { app, BrowserWindow, protocol } from 'electron';
 
 import { Client } from './client';
 
+export const client = new Client();
+
 (async () => {
   const scheme = 'fap';
-  const client = new Client();
   const lock = app.requestSingleInstanceLock();
 
   electronApp.setAppUserModelId('com.file-analysis-pipeline');
