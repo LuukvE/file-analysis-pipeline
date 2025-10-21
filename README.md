@@ -43,15 +43,9 @@ cd client
 bun install
 bun run setup # Configure protocol for Electron
 
-# Tip: Run the default build task with `Ctrl-Shift-B` to launch everything
-
-# Or run:
-bun run aws # LocalStack emulator
-bun run server
-bun run processor
-bun run engine
+# Within repo root
+docker compose up
 bun run client
-bun run monitor # Grafana
 ```
 
 ## Reasoning
