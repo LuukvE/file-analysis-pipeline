@@ -16,7 +16,6 @@ export interface Message {
 }
 
 export interface Job extends Message {
-  version: string;
   created: string;
   mime: string;
   file: string;

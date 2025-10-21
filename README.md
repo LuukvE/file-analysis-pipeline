@@ -65,7 +65,5 @@ bun run monitor # Grafana
 - Use SSO for authentication. Businesses already have on- and off-boarding procedures in-place. By using Microsoft and Google SSO, this system tries to minimise operational requirements.
 - Use S3 _(binary data)_ and a custom NestJS server _(JSON data)_. This enables the processor with attached engine to pull data instead of requiring open inbound ports.
 - Leverage the increased throughput of file transfers within AWS networks, which could outperform a direct client to processor upload stream depending on the network connections and usage.
-- Support continuous deployments of new versions of each part of the stack, including versions with breaking changes. By using multiple processors that could be written for different versions, it allows gradual upgrading.
-- Give clients control over their upgrade. Since customers might wish to run their own internal tests before adoption. This feature is especially important for critical systems managed by external customers. (TODO)
 - Use Docker Compose with a bridge network between the engine and processor. This ensures the engine can still be open to requests from the processor, without being accessible from anywhere else.
 - Emulate AWS services using LocalStack, enabling improved testing and development with easily configurable IAM policies, DynamoDB tables, S3 buckets and secrets. This approach also allows for developer-specific mock data.

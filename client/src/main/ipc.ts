@@ -42,7 +42,6 @@ export function onWatch(_e: IpcMainInvokeEvent, path: string) {
       id: '',
       cid: randomUUID(),
       table: Table.JOBS,
-      version: app.getVersion(),
       file: path,
       size: statSync(path).size,
       mime,
