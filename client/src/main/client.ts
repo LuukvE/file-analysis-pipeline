@@ -24,7 +24,10 @@ export class Client {
   async create() {
     this.win = new BrowserWindow(windowOptions);
 
-    this.win.on('ready-to-show', () => this.win?.show());
+    this.win.on('ready-to-show', () => {
+      this.win?.show();
+      this.win?.webContents.openDevTools();
+    });
 
     this.win.webContents.setWindowOpenHandler(({ url }) => {
       this.openSite(url);

@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import App from './components/App';
 
-window.electron.ipcRenderer.on('token', (_, token) => {
-  sessionStorage.setItem('token', token);
-});
+window.auth = { token: '' };
+
+window.electron.ipcRenderer.on('token', (_, token) => (window.auth.token = token));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

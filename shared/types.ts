@@ -19,6 +19,8 @@ export interface Job extends Message {
   version: string;
   created: string;
   mime: string;
+  file: string;
+  size: string;
   client: string;
   signature?: string;
   status?: Status;
